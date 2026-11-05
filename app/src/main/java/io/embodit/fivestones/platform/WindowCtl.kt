@@ -20,6 +20,11 @@ import kotlin.math.asin
  * its no-head fallback (1.5 s). "Bring it back" = close, wait for ON_DESTROY, then open again (§3.5).
  */
 class WindowCtl {
+    companion object {
+        /** Read by the window's placement lambda in Main.kt: true while a recall / reopen is opening the window. */
+        @Volatile var placeInFront = false
+    }
+
     val gate = LevelGate()
     var levelHint by mutableStateOf(false)
         private set
@@ -50,6 +55,7 @@ class WindowCtl {
 
     /** Ask for the window; it opens once the head is level (or the fallback fires). */
     fun request(why: String) {
+        if (why != "start") placeInFront = true // every reopen (recall, "open panel" chip) comes up in front
         gate.ask(why, SystemClock.elapsedRealtime())
         Log.i(TAG, "WINDOW ask why=$why state=$panelState")
         main.removeCallbacks(watchdog)
@@ -58,12 +64,14 @@ class WindowCtl {
 
     /** Settings [叫回面前]: close and reopen in front of the user. */
     fun recall() {
+        placeInFront = true
         if (panelState == "never" || panelState == "ON_DESTROY") request("recall")
         else { recallPending = true; Log.i(TAG, "WINDOW recall close"); close?.invoke() }
     }
 
     fun onPanelLifecycle(event: String) {
         panelState = event
+        if (event == "ON_RESUME" && !recallPending) placeInFront = false
         Log.i(TAG, "WINDOW lifecycle $event")
         if (recallPending && event == "ON_DESTROY") { recallPending = false; request("recall") }
     }

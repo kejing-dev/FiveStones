@@ -102,7 +102,7 @@ class SoundPlayer(context: Context) {
     fun play(s: Sound) {
         if (!enabled) return
         val variants = ids[s] ?: return
-        val vol = when (volumeLevel) { 0 -> 0.35f; 1 -> 0.65f; else -> 1f }
+        val vol = io.embodit.fivestones.ui.control.VOLUME_PERCENT[volumeLevel.coerceIn(0, 2)] / 100f
         var rate = 1f
         var v = 0
         if (s == Sound.PLACE) {

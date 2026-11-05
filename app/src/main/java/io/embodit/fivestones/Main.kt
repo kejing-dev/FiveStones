@@ -9,6 +9,7 @@ import com.pico.spatial.ui.foundation.dsl.SpatialAppScope
 import com.pico.spatial.ui.foundation.dsl.WindowContainer
 import com.pico.spatial.ui.foundation.dsl.WindowContainerSize
 import androidx.compose.foundation.layout.Box
+import io.embodit.fivestones.platform.WindowCtl
 import io.embodit.fivestones.ui.Containers
 import io.embodit.fivestones.ui.board.BoardScreen
 import io.embodit.fivestones.ui.control.ControlWindow
@@ -28,7 +29,8 @@ fun mainApp(scope: SpatialAppScope) =
             Containers.CONTROL,
             form = Form.Planar,
             defaultSize = WindowContainerSize(width = 560.dp, height = 480.dp),
-            placement = { containers.firstOrNull { it.id == Containers.BOARD }?.let { Placement.right(it) } ?: Placement.none() },
+            // First open: beside the board. 叫回面前: the default spot in front of the head (Placement.none), never back beside the board.
+            placement = { if (WindowCtl.placeInFront) Placement.none() else containers.firstOrNull { it.id == Containers.BOARD }?.let { Placement.right(it) } ?: Placement.none() },
         ) {
             FiveTheme {
                 Box(Modifier.windowConstraints(minWidth = 520.dp, minHeight = 360.dp, maxWidth = 900.dp, maxHeight = 640.dp)) { ControlWindow() }

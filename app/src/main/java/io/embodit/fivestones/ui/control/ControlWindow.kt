@@ -91,11 +91,16 @@ fun ControlWindow() {
         when (state.phase) {
             Phase.WELCOME -> Ui.page = Page.RULES
             Phase.SETUP -> Ui.page = Page.NEW
-            Phase.IDLE, Phase.THINKING, Phase.RESULT, Phase.PAUSED -> if (Ui.page == Page.NEW || (Ui.page == Page.RULES && state.phase != Phase.PAUSED && !state.restored)) Ui.page = Page.PLAY
+            // A restored game also lands on Play (critic 要改 1: it used to stay on Rules after a real force-stop).
+            Phase.IDLE, Phase.THINKING, Phase.RESULT, Phase.PAUSED -> if (Ui.page == Page.NEW || (Ui.page == Page.RULES && state.phase != Phase.PAUSED)) Ui.page = Page.PLAY
             else -> Unit
         }
     }
-    LaunchedEffect(Ui.page) { Log.i(TAG, "PAGE ${Ui.page} ${Ui.page.stateId}") }
+    LaunchedEffect(Ui.page) {
+        Log.i(TAG, "PAGE ${Ui.page} ${Ui.page.stateId}")
+        if (Ui.page != Page.SETTINGS) Ui.exitConfirm = false
+        if (Ui.page != Page.NEW) Ui.newConfirm = false
+    }
 
     Box(Modifier.fillMaxSize().padding(horizontal = 28.dp, vertical = 20.dp)) {
         when (Ui.page) {
@@ -219,6 +224,7 @@ private fun StatusLine(state: PlayState) {
         state.result != null -> ""
         state.phase == Phase.THINKING -> stringResource(R.string.status_thinking, whoName(state, state.toMove))
         state.phase == Phase.PLACING && state.retractUntil != null -> stringResource(R.string.status_placing)
+        state.phase == Phase.PLACING && state.flight != null -> stringResource(R.string.status_ai_placing, whoName(state, state.flight.color))
         state.ghostForbidden != null -> stringResource(R.string.status_ghost_forbidden, forbiddenName(state.ghostForbidden))
         state.phase == Phase.PREVIEW -> stringResource(R.string.status_pinch, whoName(state, state.toMove))
         state.firstGame && state.humansTurn -> stringResource(listOf(R.string.coach_1, R.string.coach_2, R.string.coach_3)[coach])
@@ -348,7 +354,18 @@ private fun NewPage(state: PlayState, settings: Settings, graph: Graph) {
         }
         Txt("ⓘ " + stringResource(R.string.new_renju_info), "new/renju-info", style = PicoTheme.typography.bodySmall, color = PicoTheme.colorScheme.labelSecondary, maxLines = 2)
         Spacer(Modifier.height(8.dp))
-        PrimaryButton(stringResource(R.string.btn_start), "new/start", onClick = { graph.flow.newGame(setup); Ui.page = Page.PLAY }, modifier = Modifier.fillMaxWidth())
+        if (Ui.newConfirm) {
+            // Starting over drops the running game: ask first, right here (critic 要改 2).
+            Txt(stringResource(R.string.confirm_new_game), "new/confirm", style = PicoTheme.typography.titleMedium, maxLines = 2)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                SecondaryButton(stringResource(R.string.btn_cancel), "new/confirm-cancel", onClick = { Ui.newConfirm = false }, modifier = Modifier.weight(1f))
+                SecondaryButton(stringResource(R.string.confirm_yes_restart), "new/confirm-yes", danger = true, onClick = { Ui.newConfirm = false; graph.flow.newGame(setup); Ui.page = Page.PLAY }, modifier = Modifier.weight(1f))
+            }
+        } else {
+            PrimaryButton(stringResource(R.string.btn_start), "new/start", onClick = {
+                if (state.inGame && state.moves.isNotEmpty()) { Ui.newConfirm = true; Log.i(TAG, "CONFIRM NEW_GAME S13") } else { graph.flow.newGame(setup); Ui.page = Page.PLAY }
+            }, modifier = Modifier.fillMaxWidth())
+        }
     }
 }
 
@@ -436,7 +453,10 @@ private fun SettingsPage(settings: Settings, graph: Graph) {
     val context = LocalContext.current
     val navigator = LocalSpatialNavigator.current
     fun upd(change: (Settings) -> Settings) { graph.settings.update(change); graph.flow.settingsChanged() }
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    val scroll = rememberScrollState()
+    // The quit row is the last one: when its confirmation opens, bring it into view.
+    LaunchedEffect(Ui.exitConfirm) { if (Ui.exitConfirm) scroll.animateScrollTo(scroll.maxValue) }
+    Column(Modifier.fillMaxSize().verticalScroll(scroll), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         PageTitle(stringResource(R.string.settings_title), "settings")
         OptionRow(stringResource(R.string.settings_language), "settings/lang") {
             Segments(listOf(Language.SYSTEM to stringResource(R.string.lang_system), Language.ZH to stringResource(R.string.lang_zh), Language.EN to stringResource(R.string.lang_en)), settings.language, "settings/lang", { l -> upd { it.copy(language = l) } }, Modifier.weight(1f))
@@ -446,7 +466,8 @@ private fun SettingsPage(settings: Settings, graph: Graph) {
             Switch(checked = settings.sound, onCheckedChange = { v -> upd { it.copy(sound = v) } })
         }
         OptionRow(stringResource(R.string.settings_volume), "settings/volume") {
-            Segments(listOf(0 to stringResource(R.string.volume_low), 1 to stringResource(R.string.volume_mid), 2 to stringResource(R.string.volume_high)), settings.volume, "settings/volume", { v -> upd { it.copy(volume = v) } }, Modifier.weight(1f))
+            // B20: a slider with three snap stops and the percentage shown.
+            VolumeSlider(settings.volume, onChange = { v -> upd { it.copy(volume = v) } }, modifier = Modifier.weight(1f))
         }
         OptionRow(stringResource(R.string.settings_reduced), "settings/reduced") {
             Spacer(Modifier.weight(1f))

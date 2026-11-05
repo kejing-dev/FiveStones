@@ -30,7 +30,7 @@ import io.embodit.fivestones.ui.board.SceneHolder
  *   undo · redo · hint on|off · shapes on|off · pause · resume · resign · restart · confirm · cancel
  *   level 1-5 · lang zh|en|system · tilt 0|20|28 · size 100|110 · sound on|off · volume 0-2 · reduced on|off
  *   page play|new|rules|settings · more on|off · renju on|off · exitask · hold on|off (AI waits) · seed N
- *   welcome (finish S01) · recall · dump · evidence
+ *   s00hold on|off (next launch keeps the S00 stand-in 10 s) · welcome (finish S01) · recall · dump · evidence
  */
 class DebugCommandReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -66,6 +66,7 @@ class DebugCommandReceiver : BroadcastReceiver() {
                 else -> Log.w(TAG, "unknown state $a")
             }
             "welcome" -> flow.welcomeDone()
+            "s00hold" -> context.getSharedPreferences("debug", Context.MODE_PRIVATE).edit().putBoolean("s00hold", on).apply()
             "hover" -> flow.hoverNow(if (a == "off") null else pt(a))
             "tap" -> pt(a)?.let { p -> if (flow.state.value.phase != Phase.PLACING) flow.hoverNow(p); flow.tap(p) }
             "freeze" -> flow.freeze(if (a == "off") null else a.toLongOrNull())

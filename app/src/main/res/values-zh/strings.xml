@@ -19,6 +19,8 @@
     <string name="status_your_move">%1$s：看哪儿，哪儿出虚子。</string>
     <string name="status_pinch">%1$s：捏一下就落在这儿。</string>
     <string name="status_thinking">%1$s在想</string>
+    <string name="status_ai_placing">%1$s落子中</string>
+    <string name="confirm_new_game">开新局？这盘就不要了。</string>
     <string name="status_placing">半秒内再点它一下能撤回。</string>
     <string name="status_occupied">这儿有子了。</string>
     <string name="status_forbidden">这点黑棋不能下：%1$s。</string>
@@ -104,7 +106,7 @@
     <string name="result_white_resign">黑胜 · 白方认输</string>
     <string name="result_you_win">五连。那五颗自己抬起来了。再来？</string>
     <string name="result_you_lose">对面先连上了。再来？</string>
-    <string name="result_stats">%1$d 手 · %2$s · 提示 %3$d 次</string>
+    <string name="result_stats">%1$d 手 · %2$s · 有 %3$d 手开着提示</string>
     <string name="result_shapes_on">这盘开着看棋形。</string>
     <string name="result_renju_note">禁手按简化版判。</string>
 
@@ -137,7 +139,7 @@
     <string name="settings_recall">叫回面前</string>
     <string name="settings_recall_hint">先关掉这个窗口，再在你面前重新打开。</string>
     <string name="settings_about">关于</string>
-    <string name="settings_about_text">五子棋 %1$s · 全离线，不用账号。图标 Material Symbols（Apache 2.0），字体 Noto Sans（OFL）。</string>
+    <string name="settings_about_text">五子棋 %1$s · 全离线，不用账号。图标 PICO ICON 7.0，字体 Noto Sans（OFL）。</string>
     <string name="settings_exit">退出应用</string>
     <string name="level_hint">平视前方，面板就出来</string>
     <string name="open_panel">打开面板</string>

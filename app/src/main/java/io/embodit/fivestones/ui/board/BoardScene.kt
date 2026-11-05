@@ -84,6 +84,7 @@ internal class BoardScene {
     private var pillarKey = ""
     private var winStart = 0L
     private val lifted = HashSet<Int>()
+    private val winRings = ArrayList<ModelEntity>()
 
     init {
         root.addChild(sceneRoot)
@@ -124,7 +125,7 @@ internal class BoardScene {
         plate = plateEntity
         val t0 = SystemClock.elapsedRealtime()
         // board
-        boardRoot.addChild(ModelEntity(r.boardSlab, r.wood).apply { setName("slab"); transform().setPosition(Vector3(0f, -BoardGeometry.THICK / 2 - 0.0004f, 0f)) })
+        boardRoot.addChild(ModelEntity(r.boardSlab, r.woodEdge).apply { setName("slab"); transform().setPosition(Vector3(0f, -BoardGeometry.THICK / 2 - 0.0004f, 0f)) })
         boardRoot.addChild(ModelEntity(r.boardFace, r.face).apply {
             setName("face")
             transform().setPosition(Vector3(0f, 0.0003f, 0f))
@@ -139,7 +140,9 @@ internal class BoardScene {
                 transform().setPosition(Vector3(0f, BoardGeometry.BOWL_H + 0.0008f, 0f))
                 transform().setQuaternion(Quat(Vector3(1f, 0f, 0f), (-PI / 2).toFloat()))
             })
-            val glow = ModelEntity(r.bowlRim, r.bowlGlow).apply { setName("bowlGlow:$c"); transform().setPosition(Vector3(0f, BoardGeometry.BOWL_H + 0.002f, 0f)); enabled = false }
+            // A glazed lip that always shows, so the bowl reads as a bowl and not a plain cylinder.
+            holder.addChild(ModelEntity(r.bowlRim, r.glazeLip).apply { setName("bowlLip:$c"); transform().setPosition(Vector3(0f, BoardGeometry.BOWL_H, 0f)) })
+            val glow = ModelEntity(r.bowlRim, r.bowlGlow).apply { setName("bowlGlow:$c"); transform().setPosition(Vector3(0f, BoardGeometry.BOWL_H + 0.004f, 0f)); enabled = false }
             holder.addChild(glow)
             bowlGlow[c] = glow
             bowls[c] = holder
@@ -158,6 +161,7 @@ internal class BoardScene {
         alertCross = cross(r, r.red, "alertCross", 0.036f).also { it.enabled = false; boardRoot.addChild(it) }
         repeat(16) { i -> crosses += cross(r, r.redSoft, "forbid:$i", 0.026f).also { it.enabled = false; boardRoot.addChild(it) } }
         repeat(Shapes.MAX) { i -> pillars += ModelEntity(r.pillar, r.tealPillar).apply { setName("pillar:$i"); enabled = false }.also { boardRoot.addChild(it) } }
+        repeat(9) { i -> winRings += ModelEntity(r.bigRing, r.teal).apply { setName("winRing:$i"); enabled = false }.also { boardRoot.addChild(it) } }
         beam = ModelEntity(r.bar, r.beam).apply { setName("winBeam"); enabled = false }
         boardRoot.addChild(beam!!)
         flyer = ModelEntity(r.stone, r.blackStone).apply { setName("flyer"); enabled = false; flatten(this) }
@@ -237,10 +241,11 @@ internal class BoardScene {
         stones.keys.filter { it !in want }.forEach { p -> stones.remove(p)?.let { it.enabled = false; pool += it } }
         for ((p, color) in want) {
             val e = stones.getOrPut(p) {
-                (if (pool.isNotEmpty()) pool.removeAt(pool.lastIndex) else ModelEntity(r.stone, r.blackStone).also { flatten(it); boardRoot.addChild(it) }).also { it.enabled = true }
+                (if (pool.isNotEmpty()) pool.removeAt(pool.lastIndex) else ModelEntity(r.stone, r.blackStone).also { boardRoot.addChild(it) }).also { flatten(it); it.enabled = true }
             }
             e.setName("stone:$p")
-            val mat = if (p in win) (if (color == Board.BLACK) r.winBlack else r.winWhite) else (if (color == Board.BLACK) r.blackStone else r.whiteStone)
+            // Stones keep their own colour when they win (critic 要改 3); the glow is a teal ring under each one.
+            val mat = if (color == Board.BLACK) r.blackStone else r.whiteStone
             e.components[ModelComponent::class.java]?.materials?.set(0, mat)
             if (p !in win) { val l = geo.local(p, SceneResources.STONE_H / 2); place(e, l) }
         }
@@ -274,7 +279,7 @@ internal class BoardScene {
         }
 
         // pillars
-        val ps = if (next.result == null && next.phase != Phase.PLACING) next.pillars else emptyList()
+        val ps = if (next.result == null) next.pillars else emptyList()
         val key = ps.joinToString { "${it.point}:${it.color}:${it.level}" } + settings.reducedMotion
         if (key != pillarKey) { pillarKey = key; pillarStart = SystemClock.uptimeMillis() }
         val own = next.config?.let { if (it.mode == io.embodit.fivestones.domain.Mode.AI) it.humanColor else next.toMove } ?: Board.BLACK
@@ -370,7 +375,7 @@ internal class BoardScene {
         alertCross?.let { c -> if (al != null && al.kind == AlertKind.FORBIDDEN && flashing) { place(c, geo.local(al.point, 0.002f)); c.enabled = true } else c.enabled = false }
 
         // pillars rise (250 ms) or lie flat with reduced motion
-        val ps = if (st.result == null && st.phase != Phase.PLACING) st.pillars else emptyList()
+        val ps = if (st.result == null) st.pillars else emptyList()
         val rise = if (reduced) 1f else ((now - pillarStart) / 250f).coerceIn(0f, 1f)
         pillars.forEachIndexed { i, e ->
             val pl = ps.getOrNull(i) ?: return@forEachIndexed
@@ -391,9 +396,13 @@ internal class BoardScene {
             val t = ((now - winStart) / 600f).coerceIn(0f, 1f)
             val lift = if (reduced) 0f else 0.03f * (1f - (1f - t) * (1f - t))
             val pulse = 1f + 0.06f * sin(clock * 5f)
-            for (p in res.lines.flatten().toSet()) stones[p]?.let { e ->
-                place(e, geo.local(p, SceneResources.STONE_H / 2 + lift))
-                e.transform().setScaleVector(Vector3(pulse, pulse * SceneResources.STONE_H / (2 * SceneResources.STONE_R), pulse))
+            res.lines.flatten().toSet().forEachIndexed { i, p ->
+                stones[p]?.let { e -> place(e, geo.local(p, SceneResources.STONE_H / 2 + lift)) }
+                winRings.getOrNull(i)?.let { ring ->
+                    place(ring, geo.local(p, lift + 0.0005f))
+                    ring.transform().setScaleVector(Vector3(pulse, 1f, pulse))
+                    ring.enabled = true
+                }
             }
             beam?.let { b -> val pp = b.transform().position; b.transform().setPosition(Vector3(pp.x, 0.003f + lift, pp.z)) }
             lifted += res.lines.flatten()
@@ -401,6 +410,7 @@ internal class BoardScene {
             // put lifted stones back after an undo from the result
             for (p in lifted) stones[p]?.let { e -> flatten(e); place(e, geo.local(p, SceneResources.STONE_H / 2)) }
             lifted.clear()
+            winRings.forEach { it.enabled = false }
         }
 
         // the AI's bowl rim breathes
@@ -413,7 +423,8 @@ internal class BoardScene {
 
     fun evidence(): String {
         val g = geo
-        return "tilt=${g.tiltDeg} size=${g.sizePct} pads=$padsBuilt stones=${stones.size} pillars=${pillars.count { it.enabled }} " +
+        val lift = lifted.firstOrNull()?.let { stones[it]?.transform()?.position?.y }
+        return "lift=$lift tilt=${g.tiltDeg} size=${g.sizePct} pads=$padsBuilt stones=${stones.size} pillars=${pillars.count { it.enabled }} " +
             "crosses=${crosses.count { it.enabled }} plate=${g.plateCentre()} bowlB=${g.bowlBase(Board.BLACK)} bowlW=${g.bowlBase(Board.WHITE)} A1=${g.pointScene(0)} O15=${g.pointScene(224)} halfY=$regionHalfY"
     }
 

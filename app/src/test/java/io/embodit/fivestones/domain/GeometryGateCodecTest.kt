@@ -68,6 +68,27 @@ class GeometryGateCodecTest {
         assertEquals(3 * 2 * 4 * 3 * 225, checked)
     }
 
+    /**
+     * Measured eyes (critic block 3): on the emulator's default placement the eye is only ~5-8° above the board
+     * centre (S03 screenshot: board trapezoid height / width 0.46 at 20° tilt -> elevation ~8°), 1.2-1.6 m away.
+     */
+    @Test fun sightLinesFromTheMeasuredEmulatorEyeMissTheBowls() {
+        for (t in tilts) for (s in sizes) for (elev in listOf(5.0, 8.0)) for (dist in listOf(1.2f, 1.6f)) for (yaw in listOf(-20f, 0f, 20f)) {
+            val g = BoardGeometry(t, s)
+            val centre = g.pointScene(Board.CENTER)
+            val a = Math.toRadians(yaw.toDouble())
+            val h = centre.y + dist * kotlin.math.tan(Math.toRadians(elev)).toFloat()
+            val eye = V3((dist * kotlin.math.sin(a)).toFloat(), h, centre.z + (dist * kotlin.math.cos(a)).toFloat())
+            for (p in 0 until Board.SIZE) {
+                val target = g.pointScene(p, 0.0045f)
+                for (k in 1 until 80) {
+                    val v = eye.lerp(target, k / 80f)
+                    assertTrue("tilt=$t size=$s elev=$elev dist=$dist yaw=$yaw ${Board.name(p)} hidden by a bowl", !insideBowl(g, v))
+                }
+            }
+        }
+    }
+
     @Test fun plateCornersClearTheBoard() {
         for (t in tilts) for (s in sizes) {
             val g = BoardGeometry(t, s)

@@ -6,8 +6,8 @@ place / place_2 / place_3  stone on kaya (three variants; the app adds +-7 % rat
 retract                    stone sliding back into the bowl
 illegal                    one dull knock          forbidden   two short knocks
 hint                       a soft wood-block       win         wood roll + short chord (<= 1.5 s)
-draw                       one low tone
-All mono 44.1 kHz 16-bit, peaks normalised to -2 dBFS, no ambience (B24). --check prints peak / RMS per file.
+draw                       one low tone        lose   two falling notes (the AI made five)
+All mono 44.1 kHz 16-bit, stone / win peaks at -1 dBFS, no ambience (B24). --check prints peak / RMS per file.
 """
 import math
 import os
@@ -19,7 +19,7 @@ import wave
 SR = 44100
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "app", "src", "main", "assets", "sounds")
-PEAK_DB = -2.0
+PEAK_DB = -1.0  # B20: default peaks within -1 dBFS
 
 
 def lowpass(x, cutoff):
@@ -78,12 +78,20 @@ def write(name, x):
         w.writeframes(b"".join(struct.pack("<h", max(-32767, min(32767, int(v * 32767)))) for v in x))
 
 
+def drive(x, k=2.2):
+    """Soft saturation: raises the body of the sound (RMS) without raising the peak (B20 loudness)."""
+    return [math.tanh(k * v) for v in x]
+
+
 def stone(seed, body=2100.0, wood=190.0):
     click = highpass(noise(0.03, 0.004, seed), 1200)
-    ring = tone(body, 0.14, 0.022, amp=0.55)
-    ring2 = tone(body * 1.53, 0.1, 0.012, amp=0.25)
-    thump = tone(wood, 0.16, 0.035, amp=0.7)
-    return lowpass(mix((click, 0), (ring, 0.001), (ring2, 0.001), (thump, 0.0)), 6500)
+    ring = tone(body, 0.32, 0.05, amp=0.55)
+    ring2 = tone(body * 1.53, 0.2, 0.025, amp=0.25)
+    thump = tone(wood, 0.34, 0.08, amp=0.8)
+    board = tone(wood * 2.7, 0.3, 0.06, amp=0.35)
+    x = lowpass(mix((click, 0), (ring, 0.001), (ring2, 0.001), (thump, 0.0), (board, 0.0)), 6500)
+    peak = max(abs(v) for v in x)
+    return drive([v / peak for v in x])
 
 
 def main():
@@ -102,7 +110,10 @@ def main():
     chord = [(tone(f, 1.1, 0.45, amp=0.35), 0.38) for f in (523.25, 659.25, 783.99, 1046.5)]
     write("win", norm(lowpass(mix(*roll, *chord, length=int(1.45 * SR)), 5000)))
     low = [math.sin(2 * math.pi * (300 - 90 * i / (0.6 * SR)) * i / SR) * math.exp(-i / SR / 0.25) for i in range(int(0.6 * SR))]
-    write("draw", norm(lowpass(low, 1500), -5))
+    write("draw", norm(lowpass(low, 1500), -4))
+    # lose: two falling wood notes, no fanfare (the opponent's five)
+    fall = mix((tone(392, 0.35, 0.12), 0), (tone(294, 0.5, 0.18), 0.22), (noise(0.02, 0.004, 41), 0), (noise(0.02, 0.004, 42), 0.22))
+    write("lose", norm(lowpass(fall, 1800), -3))
     if "--check" in sys.argv:
         for f in sorted(os.listdir(OUT)):
             with wave.open(os.path.join(OUT, f)) as w:

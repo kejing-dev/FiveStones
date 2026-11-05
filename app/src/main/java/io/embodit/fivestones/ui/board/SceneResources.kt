@@ -54,10 +54,9 @@ internal class SceneResources private constructor() {
     lateinit var blackStone: Material; private set
     lateinit var whiteStone: Material; private set
     lateinit var glaze: Material; private set
+    lateinit var glazeLip: Material; private set
     lateinit var blackMouth: Material; private set
     lateinit var whiteMouth: Material; private set
-    lateinit var winBlack: Material; private set
-    lateinit var winWhite: Material; private set
 
     lateinit var ghostBlack: Material; private set
     lateinit var ghostWhite: Material; private set
@@ -130,8 +129,7 @@ internal class SceneResources private constructor() {
                 async(io) { r.blackStone = pbr(FiveColors.StoneBlack, roughness = 0.35f, glow = 0.02f).keep() },
                 async(io) { r.whiteStone = pbr(FiveColors.StoneWhite, roughness = 0.3f).keep() },
                 async(io) { r.glaze = pbr(FiveColors.Glaze, roughness = 0.4f, metallic = 0.05f).keep() },
-                async(io) { r.winBlack = pbr(Color(0xFF1C2A2A), roughness = 0.3f, glow = 0f).apply { setEmissiveColor(Color4(0.03f, 0.16f, 0.14f, 1f)) }.keep() },
-                async(io) { r.winWhite = pbr(FiveColors.StoneWhite, roughness = 0.3f).apply { setEmissiveColor(Color4(0.10f, 0.30f, 0.27f, 1f)) }.keep() },
+                async(io) { r.glazeLip = pbr(androidx.compose.ui.graphics.Color(0xFF8A6A4A), roughness = 0.3f, metallic = 0.05f).keep() },
                 async(io) { r.ghostBlack = unlit(Color(0xFF15181B), 0.45f).keep() },
                 async(io) { r.ghostWhite = unlit(Color(0xFFF7F4EC), 0.55f).keep() },
                 async(io) { r.red = unlit(FiveColors.Error).keep() },
