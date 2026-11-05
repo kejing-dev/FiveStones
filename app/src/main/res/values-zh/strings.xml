@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">五子棋</string>
+
+    <string name="tab_play">对局</string>
+    <string name="tab_new">新局</string>
+    <string name="tab_rules">规则</string>
+    <string name="tab_settings">设置</string>
+
+    <string name="color_black">黑</string>
+    <string name="color_white">白</string>
+    <string name="who_you">你</string>
+    <string name="who_ai">AI %1$s</string>
+    <string name="move_n">第 %1$d 手</string>
+    <string name="plate_turn">第 %1$d 手 · 轮到%2$s</string>
+    <string name="plate_ready">五子棋</string>
+    <string name="plate_over">第 %1$d 手 · 已结束</string>
+
+    <string name="status_your_move">%1$s：看哪儿，哪儿出虚子。</string>
+    <string name="status_pinch">%1$s：捏一下就落在这儿。</string>
+    <string name="status_thinking">%1$s在想</string>
+    <string name="status_placing">半秒内再点它一下能撤回。</string>
+    <string name="status_occupied">这儿有子了。</string>
+    <string name="status_forbidden">这点黑棋不能下：%1$s。</string>
+    <string name="status_ended">已经结束了。再来一局？</string>
+    <string name="status_paused">暂停中。</string>
+    <string name="status_restored">接着上次下。</string>
+    <string name="status_ghost_forbidden">这点黑棋不能下：%1$s。</string>
+
+    <string name="forbidden_double_three">三三</string>
+    <string name="forbidden_double_four">四四</string>
+    <string name="forbidden_overline">长连</string>
+
+    <string name="btn_undo">悔一步</string>
+    <string name="btn_redo">重做</string>
+    <string name="btn_hint">给个提示</string>
+    <string name="btn_shapes">看棋形</string>
+    <string name="btn_mute">静音</string>
+    <string name="btn_more">更多</string>
+    <string name="btn_pause">暂停</string>
+    <string name="btn_resign">认输</string>
+    <string name="btn_restart">重开</string>
+    <string name="btn_resume">继续</string>
+    <string name="btn_again">再来一局</string>
+    <string name="btn_menu">主菜单</string>
+    <string name="btn_cancel">取消</string>
+    <string name="btn_start">开始</string>
+    <string name="btn_continue">继续上一盘</string>
+    <string name="btn_new_game">新局</string>
+    <string name="btn_rules">规则</string>
+    <string name="btn_settings">设置</string>
+    <string name="btn_leave">离开</string>
+    <string name="btn_close">关闭</string>
+
+    <string name="coach_1">看哪儿，哪儿会出一颗虚子。捏一下就落下。</string>
+    <string name="coach_2">盘上立起琥珀柱子 = 对面快连上了。去堵它。</string>
+    <string name="coach_3">点错了？半秒内再点那颗子，它会飞回罐里。</string>
+
+    <string name="new_title">新局</string>
+    <string name="new_opponent">对手</string>
+    <string name="new_vs_ai">人机</string>
+    <string name="new_two_players">双人</string>
+    <string name="new_side">执子</string>
+    <string name="new_side_black">黑（先）</string>
+    <string name="new_side_white">白</string>
+    <string name="new_side_random">随机</string>
+    <string name="new_level">难度</string>
+    <string name="level_1">入门</string>
+    <string name="level_2">初级</string>
+    <string name="level_3">中级</string>
+    <string name="level_4">高级</string>
+    <string name="level_5">大师</string>
+    <string name="new_rule">规则</string>
+    <string name="new_rule_free">自由</string>
+    <string name="new_rule_renju">禁手</string>
+    <string name="new_renju_info">黑棋不能下三三、四四、长连。</string>
+    <string name="new_two_players_note">头显轮着戴，或者一个人替两边下。</string>
+
+    <string name="rules_title">怎么下</string>
+    <string name="rules_1">黑先，轮流往空的交叉点放一颗子。</string>
+    <string name="rules_2">横、竖、斜，谁先五颗连成一条线谁赢。</string>
+    <string name="rules_3">三颗连着两头都空叫活三，下一手就成活四，基本挡不住；四颗差一子叫冲四，必须马上堵。</string>
+    <string name="rules_4">开着「看棋形」，这些点会在盘上立起光柱：青的是你的机会，琥珀的是对面的威胁，越高越急。</string>
+    <string name="rules_mistakes">新手常错</string>
+    <string name="mistake_1">只顾自己连，没看对面那根琥珀柱子。先堵活三，再想进攻。</string>
+    <string name="mistake_2">冲四不是赢。对面一堵，这四颗就废了，想想堵完之后你还有没有后手。</string>
+    <string name="mistake_3">眼睛扫过去就捏了。等虚子停在你想的那个点再捏，半秒内还能再点它一下撤回。</string>
+    <string name="mistake_4">开着禁手下黑棋，六颗连起来不算赢，还算输。盯着红 ✕。</string>
+    <string name="rules_renju_title">禁手是什么？</string>
+    <string name="renju_1">禁手是给黑棋加的限制，因为先手太占便宜。</string>
+    <string name="renju_2">黑棋一手同时做出两个活三、或两个四、或六颗以上连起来，都算禁手，那一点不能下，盘上会标红 ✕。</string>
+    <string name="renju_3">开着禁手时黑棋只有正好五颗才赢。这里按简化版判，和正式连珠规则略有出入。</string>
+    <string name="legend_three">活三</string>
+    <string name="legend_four">冲四</string>
+    <string name="legend_open_four">活四</string>
+    <string name="welcome_title">来下五子棋</string>
+    <string name="welcome_start">开始</string>
+
+    <string name="result_black_five">黑胜 · 五连</string>
+    <string name="result_white_five">白胜 · 五连</string>
+    <string name="result_white_forbidden">白胜 · 黑方只剩禁手点</string>
+    <string name="result_draw_full">和 · 盘满</string>
+    <string name="result_black_resign">白胜 · 黑方认输</string>
+    <string name="result_white_resign">黑胜 · 白方认输</string>
+    <string name="result_you_win">五连。那五颗自己抬起来了。再来？</string>
+    <string name="result_you_lose">对面先连上了。再来？</string>
+    <string name="result_stats">%1$d 手 · %2$s · 提示 %3$d 次</string>
+    <string name="result_shapes_on">这盘开着看棋形。</string>
+    <string name="result_renju_note">禁手按简化版判。</string>
+
+    <string name="pause_title">暂停</string>
+
+    <string name="confirm_restart">重开？这盘就不要了。</string>
+    <string name="confirm_resign">认输这一盘？</string>
+    <string name="confirm_exit">退出五子棋？</string>
+    <string name="confirm_undo_2p">退回上一手。对方同意了？</string>
+    <string name="confirm_leave">离开这盘？这盘就不要了。</string>
+    <string name="confirm_yes_restart">重开</string>
+    <string name="confirm_yes_resign">认输</string>
+    <string name="confirm_yes_exit">退出</string>
+    <string name="confirm_yes_undo">同意了</string>
+    <string name="confirm_yes_leave">离开</string>
+
+    <string name="settings_title">设置</string>
+    <string name="settings_language">语言</string>
+    <string name="lang_system">跟随系统</string>
+    <string name="lang_zh">中文</string>
+    <string name="lang_en">English</string>
+    <string name="settings_sound">音效</string>
+    <string name="settings_volume">音量</string>
+    <string name="volume_low">小</string>
+    <string name="volume_mid">中</string>
+    <string name="volume_high">大</string>
+    <string name="settings_reduced">减少动态</string>
+    <string name="settings_tilt">棋盘倾角</string>
+    <string name="settings_size">棋盘大小</string>
+    <string name="settings_recall">叫回面前</string>
+    <string name="settings_recall_hint">先关掉这个窗口，再在你面前重新打开。</string>
+    <string name="settings_about">关于</string>
+    <string name="settings_about_text">五子棋 %1$s · 全离线，不用账号。图标 Material Symbols（Apache 2.0），字体 Noto Sans（OFL）。</string>
+    <string name="settings_exit">退出应用</string>
+    <string name="level_hint">平视前方，面板就出来</string>
+    <string name="open_panel">打开面板</string>
+</resources>
