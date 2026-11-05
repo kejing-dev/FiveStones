@@ -20,4 +20,5 @@ object Ui {
     var renjuOpen by mutableStateOf(false)
     var exitConfirm by mutableStateOf(false)
     var newConfirm by mutableStateOf(false)
+    var rulesView by mutableStateOf(0)
 }

@@ -13,6 +13,9 @@
     <string name="who_ai">AI · %1$s</string>
     <string name="move_n">Move %1$d</string>
     <string name="plate_turn">Move %1$d · %2$s to play</string>
+    <string name="plate_taken">Taken</string>
+    <string name="plate_forbidden">Forbidden: %1$s</string>
+    <string name="plate_over_short">Game over</string>
     <string name="plate_ready">Five Stones</string>
     <string name="plate_over">Move %1$d · game over</string>
 
@@ -83,7 +86,9 @@
     <string name="rules_2">Five in a row, any direction, wins.</string>
     <string name="rules_3">Three in a row with both ends open is an open three: next move it becomes an open four, and that\'s nearly unstoppable. Four with one gap is a four: block it now.</string>
     <string name="rules_4">With Shapes on, those points stand up as light pillars. Teal is your chance, amber is their threat. Taller means more urgent.</string>
-    <string name="rules_mistakes">Common mistakes</string>
+    <string name="rules_mistakes">Common slips</string>
+    <string name="rules_seg_how">How to play</string>
+    <string name="rules_seg_renju">Forbidden</string>
     <string name="mistake_1">Busy building your own line while an amber pillar stands on their side. Block the open three first, then attack.</string>
     <string name="mistake_2">A four isn\'t a win. One block and it\'s dead. Ask what you have after they block.</string>
     <string name="mistake_3">Pinching the moment your eyes land. Wait for the ghost stone to settle on the point you mean. You get half a second to tap it back.</string>
@@ -136,10 +141,10 @@
     <string name="settings_reduced">Reduce motion</string>
     <string name="settings_tilt">Board tilt</string>
     <string name="settings_size">Board size</string>
-    <string name="settings_recall">Bring this window back</string>
-    <string name="settings_recall_hint">Closes this window and opens it again in front of you.</string>
+    <string name="settings_recall">Reopen panel</string>
+    <string name="settings_recall_hint">The panel reopens next to the board. Drag it where you like with the handle under it.</string>
     <string name="settings_about">About</string>
-    <string name="settings_about_text">Five Stones %1$s · offline, no account. Icons: PICO ICON 7.0. Font: Noto Sans (OFL).</string>
+    <string name="settings_about_text">Five Stones v%1$s · Icons PICO ICON 7.0 · Fonts PICO Sans / Noto Sans SC · Sounds made in-house</string>
     <string name="settings_exit">Quit app</string>
     <string name="level_hint">Look straight ahead and the panel opens</string>
     <string name="open_panel">Open panel</string>
