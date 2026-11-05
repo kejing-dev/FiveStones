@@ -48,7 +48,10 @@ import com.pico.spatial.ui.foundation.gesture.detectSpatialPointerEvent
 import com.pico.spatial.ui.foundation.gesture.detectSpatialTapGesture
 import com.pico.spatial.ui.platform.containers.LocalSpatialNavigator
 import io.embodit.fivestones.R
+import io.embodit.fivestones.domain.AlertKind
 import io.embodit.fivestones.domain.Board
+import io.embodit.fivestones.domain.Forbidden
+import androidx.compose.foundation.layout.Column
 import io.embodit.fivestones.domain.BoardGeometry
 import io.embodit.fivestones.domain.Phase
 import io.embodit.fivestones.domain.PlayState
@@ -96,6 +99,7 @@ fun BoardScreen() {
             open = { navigator.openWindowContainer(Containers.CONTROL, Containers.CONTROL_TAG) },
             close = { navigator.closeWindowContainer(Containers.CONTROL, Containers.CONTROL_TAG) },
         )
+        graph.window.closeBoard = { navigator.closeWindowContainer() }
         graph.window.request("start")
         onDispose {
             graph.window.detach()
@@ -212,7 +216,23 @@ private fun Plate(state: PlayState, graph: Graph) {
                 // design-style: inherited-content-color Button
                 Text(stringResource(R.string.open_panel), fontSize = 16.sp)
             }
-            else -> PlateText(state)
+            else -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                PlateText(state)
+                // D45: the reason for a refused tap also shows here, next to the board, for 1.5 s (same source as the window).
+                state.alert?.let { al ->
+                    val reason = when (al.kind) {
+                        AlertKind.OCCUPIED -> stringResource(R.string.plate_taken)
+                        AlertKind.ENDED -> stringResource(R.string.plate_over_short)
+                        AlertKind.FORBIDDEN -> stringResource(R.string.plate_forbidden, stringResource(when (al.reason) {
+                            Forbidden.DOUBLE_FOUR -> R.string.forbidden_double_four
+                            Forbidden.OVERLINE -> R.string.forbidden_overline
+                            else -> R.string.forbidden_double_three
+                        }))
+                    }
+                    Text(reason, color = FiveColors.ErrorText, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false,
+                        onTextLayout = { if (it.hasVisualOverflow) Log.w(TAG, "OVERFLOW plate/reason \"$reason\"") })
+                }
+            }
         }
     }
 }

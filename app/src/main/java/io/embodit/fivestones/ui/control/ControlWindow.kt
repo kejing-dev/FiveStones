@@ -111,19 +111,24 @@ fun ControlWindow() {
         }
     }
 
-    TabBar(followViewpoints = setOf(ViewPoint.Front, ViewPoint.Left)) {
-        listOf(
-            Triple(Page.PLAY, R.drawable.ic_tab_play, R.string.tab_play),
-            Triple(Page.NEW, R.drawable.ic_tab_new, R.string.tab_new),
-            Triple(Page.RULES, R.drawable.ic_tab_rules, R.string.tab_rules),
-            Triple(Page.SETTINGS, R.drawable.ic_tab_settings, R.string.tab_settings),
-        ).forEach { (page, icon, label) ->
-            item(
-                selected = Ui.page == page,
-                onClick = { Ui.page = page },
-                mainContent = { Icon(painter = painterResource(icon), contentDescription = stringResource(label)) },
-                supportContent = { Txt(stringResource(label), "tabbar/${page.name}", style = PicoTheme.typography.labelMedium) },
-            )
+    // The TabBar is its own system window: its items do not see this window's localised context, so the labels are
+    // resolved here and passed in as plain strings (QA q1-6: tabs stayed Chinese in English).
+    val tabs = listOf(
+        Triple(Page.PLAY, R.drawable.ic_tab_play, stringResource(R.string.tab_play)),
+        Triple(Page.NEW, R.drawable.ic_tab_new, stringResource(R.string.tab_new)),
+        Triple(Page.RULES, R.drawable.ic_tab_rules, stringResource(R.string.tab_rules)),
+        Triple(Page.SETTINGS, R.drawable.ic_tab_settings, stringResource(R.string.tab_settings)),
+    )
+    androidx.compose.runtime.key(settings.language) {
+        TabBar(followViewpoints = setOf(ViewPoint.Front, ViewPoint.Left)) {
+            tabs.forEach { (page, icon, label) ->
+                item(
+                    selected = Ui.page == page,
+                    onClick = { Ui.page = page },
+                    mainContent = { Icon(painter = painterResource(icon), contentDescription = label) },
+                    supportContent = { Txt(label, "tabbar/${page.name}", style = PicoTheme.typography.labelMedium) },
+                )
+            }
         }
     }
 }
@@ -373,20 +378,26 @@ private fun NewPage(state: PlayState, settings: Settings, graph: Graph) {
 
 @Composable
 private fun RulesPage(state: PlayState, graph: Graph) {
-    Column(Modifier.fillMaxSize()) {
-        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            PageTitle(stringResource(if (state.phase == Phase.WELCOME) R.string.welcome_title else R.string.rules_title), "rules")
-            RulesDiagram()
-            listOf(R.string.rules_1, R.string.rules_2, R.string.rules_3, R.string.rules_4).forEach { Txt(stringResource(it), "rules/line", maxLines = 4) }
-            Spacer(Modifier.height(6.dp))
-            Txt(stringResource(R.string.rules_mistakes), "rules/mistakes", style = PicoTheme.typography.titleMedium)
-            listOf(R.string.mistake_1, R.string.mistake_2, R.string.mistake_3, R.string.mistake_4).forEach { Txt("· " + stringResource(it), "rules/mistake", style = PicoTheme.typography.bodyMedium, maxLines = 4) }
-            Spacer(Modifier.height(6.dp))
-            SecondaryButton(stringResource(R.string.rules_renju_title) + if (Ui.renjuOpen) " ▴" else " ▾", "rules/renju", onClick = { Ui.renjuOpen = !Ui.renjuOpen })
-            if (Ui.renjuOpen) listOf(R.string.renju_1, R.string.renju_2, R.string.renju_3).forEach { Txt(it.let { id -> stringResource(id) }, "rules/renju-line", style = PicoTheme.typography.bodyMedium, maxLines = 4) }
+    // Three views switched inside the page (same-page option, not page navigation), each fits without scrolling (D44).
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Segments(
+                listOf(0 to stringResource(R.string.rules_seg_how), 1 to stringResource(R.string.rules_mistakes), 2 to stringResource(R.string.rules_seg_renju)),
+                Ui.rulesView, "rules/view", { Ui.rulesView = it }, Modifier.weight(1f),
+            )
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            when (Ui.rulesView) {
+                0 -> {
+                    if (state.phase == Phase.WELCOME) Txt(stringResource(R.string.welcome_title), "rules/welcome", style = PicoTheme.typography.titleMedium)
+                    RulesDiagram()
+                    listOf(R.string.rules_1, R.string.rules_2, R.string.rules_3, R.string.rules_4).forEach { Txt(stringResource(it), "rules/line", style = PicoTheme.typography.bodyMedium, maxLines = 4) }
+                }
+                1 -> listOf(R.string.mistake_1, R.string.mistake_2, R.string.mistake_3, R.string.mistake_4).forEach { Txt("· " + stringResource(it), "rules/mistake", style = PicoTheme.typography.bodyLarge, maxLines = 4) }
+                else -> listOf(R.string.renju_1, R.string.renju_2, R.string.renju_3).forEach { Txt(stringResource(it), "rules/renju-line", style = PicoTheme.typography.bodyLarge, maxLines = 4) }
+            }
         }
         if (state.phase == Phase.WELCOME) {
-            Spacer(Modifier.height(10.dp))
             PrimaryButton(stringResource(R.string.welcome_start), "rules/welcome-start", onClick = { graph.flow.welcomeDone() }, modifier = Modifier.fillMaxWidth())
         }
     }
@@ -398,7 +409,7 @@ private fun RulesDiagram() {
     val wood = FiveColors.Kaya
     val ink = FiveColors.BoardInk
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Canvas(Modifier.size(width = 300.dp, height = 150.dp)) {
+        Canvas(Modifier.size(width = 240.dp, height = 120.dp)) {
             val cell = size.height / 7f
             drawRoundRect(wood, cornerRadius = androidx.compose.ui.geometry.CornerRadius(12f, 12f))
             for (i in 0..6) {
@@ -453,50 +464,36 @@ private fun SettingsPage(settings: Settings, graph: Graph) {
     val context = LocalContext.current
     val navigator = LocalSpatialNavigator.current
     fun upd(change: (Settings) -> Settings) { graph.settings.update(change); graph.flow.settingsChanged() }
-    val scroll = rememberScrollState()
-    // The quit row is the last one: when its confirmation opens, bring it into view.
-    LaunchedEffect(Ui.exitConfirm) { if (Ui.exitConfirm) scroll.animateScrollTo(scroll.maxValue) }
-    Column(Modifier.fillMaxSize().verticalScroll(scroll), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        PageTitle(stringResource(R.string.settings_title), "settings")
+    // 8 rows, no scrolling: [重开控制窗] and [退出应用] are always on the first screen (D44, design densityCap 504 <= 560 dp).
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(0.dp)) {
         OptionRow(stringResource(R.string.settings_language), "settings/lang") {
             Segments(listOf(Language.SYSTEM to stringResource(R.string.lang_system), Language.ZH to stringResource(R.string.lang_zh), Language.EN to stringResource(R.string.lang_en)), settings.language, "settings/lang", { l -> upd { it.copy(language = l) } }, Modifier.weight(1f))
         }
-        OptionRow(stringResource(R.string.settings_sound), "settings/sound") {
-            Spacer(Modifier.weight(1f))
-            Switch(checked = settings.sound, onCheckedChange = { v -> upd { it.copy(sound = v) } })
-        }
+        SwitchRow(stringResource(R.string.settings_sound), "settings/sound", settings.sound) { v -> upd { it.copy(sound = v) } }
         OptionRow(stringResource(R.string.settings_volume), "settings/volume") {
-            // B20: a slider with three snap stops and the percentage shown.
             VolumeSlider(settings.volume, onChange = { v -> upd { it.copy(volume = v) } }, modifier = Modifier.weight(1f))
         }
-        OptionRow(stringResource(R.string.settings_reduced), "settings/reduced") {
-            Spacer(Modifier.weight(1f))
-            Switch(checked = settings.reducedMotion, onCheckedChange = { v -> upd { it.copy(reducedMotion = v) } })
-        }
+        SwitchRow(stringResource(R.string.settings_reduced), "settings/reduced", settings.reducedMotion) { v -> upd { it.copy(reducedMotion = v) } }
         OptionRow(stringResource(R.string.settings_tilt), "settings/tilt") {
             Segments(Settings.TILTS.map { it to "$it°" }, settings.tilt, "settings/tilt", { t -> upd { it.copy(tilt = t) } }, Modifier.weight(1f))
         }
         OptionRow(stringResource(R.string.settings_size), "settings/size") {
             Segments(Settings.SIZES.map { it to "$it%" }, settings.size, "settings/size", { s -> upd { it.copy(size = s) } }, Modifier.weight(1f))
         }
-        Spacer(Modifier.height(6.dp))
-        SecondaryButton(stringResource(R.string.settings_recall), "settings/recall", onClick = { graph.window.recall() }, modifier = Modifier.fillMaxWidth())
-        Txt(stringResource(R.string.settings_recall_hint), "settings/recall-hint", style = PicoTheme.typography.bodySmall, color = PicoTheme.colorScheme.labelSecondary, maxLines = 2)
-        Spacer(Modifier.height(6.dp))
-        Txt(stringResource(R.string.settings_about), "settings/about", style = PicoTheme.typography.titleMedium)
-        Txt(stringResource(R.string.settings_about_text, BuildConfig.VERSION_NAME), "settings/about-text", style = PicoTheme.typography.bodySmall, color = PicoTheme.colorScheme.labelSecondary, maxLines = 3)
-        Spacer(Modifier.height(14.dp))
-        // D26: quit is the last row; the confirmation opens right here (no second panel).
+        Spacer(Modifier.height(4.dp))
+        SecondaryButton(stringResource(R.string.settings_recall), "settings/reopen", onClick = { graph.window.recall() }, modifier = Modifier.fillMaxWidth())
+        Txt(stringResource(R.string.settings_recall_hint), "settings/reopen-hint", style = PicoTheme.typography.bodySmall, color = PicoTheme.colorScheme.labelSecondary, maxLines = 2, modifier = Modifier.padding(top = 4.dp))
+        Txt(stringResource(R.string.settings_about_text, BuildConfig.VERSION_NAME), "settings/about", style = PicoTheme.typography.bodySmall, color = PicoTheme.colorScheme.labelSecondary, maxLines = 1, modifier = Modifier.padding(vertical = 6.dp))
+        // D26: quit is the last row; the confirmation opens in the same row (no second panel, no scrolling).
         if (!Ui.exitConfirm) {
             SecondaryButton(stringResource(R.string.settings_exit), "settings/exit", onClick = { Ui.exitConfirm = true; Log.i(TAG, "CONFIRM EXIT S13") }, modifier = Modifier.fillMaxWidth(), danger = true)
         } else {
-            Txt(stringResource(R.string.confirm_exit), "settings/exit-q", style = PicoTheme.typography.titleMedium)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                Txt(stringResource(R.string.confirm_exit), "settings/exit-q", style = PicoTheme.typography.titleMedium, modifier = Modifier.weight(1.3f), maxLines = 2)
                 SecondaryButton(stringResource(R.string.btn_cancel), "settings/exit-cancel", onClick = { Ui.exitConfirm = false }, modifier = Modifier.weight(1f))
                 SecondaryButton(stringResource(R.string.confirm_yes_exit), "settings/exit-yes", onClick = { exitApp(context, navigator, graph) }, modifier = Modifier.weight(1f), danger = true)
             }
         }
-        Spacer(Modifier.height(12.dp))
     }
 }
 
@@ -504,10 +501,19 @@ private fun SettingsPage(settings: Settings, graph: Graph) {
 internal fun exitApp(context: Context, navigator: SpatialNavigator, graph: Graph) {
     Log.i(TAG, "EXIT release + close + finishAndRemoveTask + exitProcess")
     runCatching { graph.flow.onBackground(); graph.sounds.release(); graph.window.detach() }
-    runCatching { navigator.closeWindowContainer(Containers.CONTROL, Containers.CONTROL_TAG) }
-    runCatching {
-        val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        am.appTasks.forEach { runCatching { it.finishAndRemoveTask() } }
-    }
-    Handler(Looper.getMainLooper()).postDelayed({ exitProcess(0) }, 400)
+    // D44 / QA q1-5: close BOTH window containers (board volume and this control window) before ending the task,
+    // otherwise the task stays in recents. Give them 400 ms to report ON_DESTROY, then remove the task and end.
+    val closeBoard = graph.window.closeBoard
+    runCatching { navigator.closeWindowContainer(Containers.CONTROL, Containers.CONTROL_TAG) }.onFailure { Log.w(TAG, "EXIT close control: $it") }
+    runCatching { closeBoard?.invoke() }.onFailure { Log.w(TAG, "EXIT close board: $it") }
+    Log.i(TAG, "EXIT closed control + board (board closer=${closeBoard != null})")
+    val main = Handler(Looper.getMainLooper())
+    main.postDelayed({
+        runCatching {
+            val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            am.appTasks.forEach { runCatching { it.finishAndRemoveTask() } }
+        }
+        Log.i(TAG, "EXIT finishAndRemoveTask")
+        main.postDelayed({ exitProcess(0) }, 300)
+    }, 400)
 }

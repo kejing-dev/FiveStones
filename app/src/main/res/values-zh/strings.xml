@@ -13,6 +13,9 @@
     <string name="who_ai">AI %1$s</string>
     <string name="move_n">第 %1$d 手</string>
     <string name="plate_turn">第 %1$d 手 · 轮到%2$s</string>
+    <string name="plate_taken">这儿有子了</string>
+    <string name="plate_forbidden">黑棋禁手：%1$s</string>
+    <string name="plate_over_short">已经结束了</string>
     <string name="plate_ready">五子棋</string>
     <string name="plate_over">第 %1$d 手 · 已结束</string>
 
@@ -84,6 +87,8 @@
     <string name="rules_3">三颗连着两头都空叫活三，下一手就成活四，基本挡不住；四颗差一子叫冲四，必须马上堵。</string>
     <string name="rules_4">开着「看棋形」，这些点会在盘上立起光柱：青的是你的机会，琥珀的是对面的威胁，越高越急。</string>
     <string name="rules_mistakes">新手常错</string>
+    <string name="rules_seg_how">怎么下</string>
+    <string name="rules_seg_renju">禁手</string>
     <string name="mistake_1">只顾自己连，没看对面那根琥珀柱子。先堵活三，再想进攻。</string>
     <string name="mistake_2">冲四不是赢。对面一堵，这四颗就废了，想想堵完之后你还有没有后手。</string>
     <string name="mistake_3">眼睛扫过去就捏了。等虚子停在你想的那个点再捏，半秒内还能再点它一下撤回。</string>
@@ -136,10 +141,10 @@
     <string name="settings_reduced">减少动态</string>
     <string name="settings_tilt">棋盘倾角</string>
     <string name="settings_size">棋盘大小</string>
-    <string name="settings_recall">叫回面前</string>
-    <string name="settings_recall_hint">先关掉这个窗口，再在你面前重新打开。</string>
+    <string name="settings_recall">重开控制窗</string>
+    <string name="settings_recall_hint">面板会在棋盘旁边重新打开。用面板下面的系统把手，把它挪到顺手的地方。</string>
     <string name="settings_about">关于</string>
-    <string name="settings_about_text">五子棋 %1$s · 全离线，不用账号。图标 PICO ICON 7.0，字体 Noto Sans（OFL）。</string>
+    <string name="settings_about_text">五子棋 v%1$s · 图标 PICO ICON 7.0 · 字体 PICO Sans / Noto Sans SC · 音效自制</string>
     <string name="settings_exit">退出应用</string>
     <string name="level_hint">平视前方，面板就出来</string>
     <string name="open_panel">打开面板</string>

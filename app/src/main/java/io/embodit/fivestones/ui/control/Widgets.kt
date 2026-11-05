@@ -28,6 +28,8 @@ import com.pico.spatial.ui.design.PicoTheme
 import com.pico.spatial.ui.design.SegmentControl
 import com.pico.spatial.ui.design.SegmentItem
 import com.pico.spatial.ui.design.Slider
+import com.pico.spatial.ui.design.Switch
+import androidx.compose.foundation.selection.toggleable
 import com.pico.spatial.ui.design.Text
 import io.embodit.fivestones.domain.Board
 import io.embodit.fivestones.platform.TAG
@@ -120,6 +122,19 @@ internal fun <T> Segments(options: List<Pair<T, String>>, selected: T, tag: Stri
                 },
             )
         }
+    }
+}
+
+/** A whole >= 48 dp row that toggles (label + Switch); the bare SpatialUI Switch is only ~32 x 20 dp (QA q1-4, D44). */
+@Composable
+internal fun SwitchRow(label: String, tag: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().height(56.dp).clip(RoundedCornerShape(16.dp))
+            .toggleable(value = checked, role = androidx.compose.ui.semantics.Role.Switch, onValueChange = onChange),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Txt(label, "$tag/label", style = PicoTheme.typography.labelLarge, modifier = Modifier.weight(1f))
+        Switch(checked = checked, onCheckedChange = null)
     }
 }
 

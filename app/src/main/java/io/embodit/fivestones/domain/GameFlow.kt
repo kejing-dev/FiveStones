@@ -100,7 +100,7 @@ class GameFlow(
         const val MIN_THINK_MS = 400L
         const val HOVER_DWELL_MS = 80L
         const val HOVER_LEAVE_MS = 150L
-        const val ALERT_MS = 1400L
+        const val ALERT_MS = 1500L
     }
 
     private val _state = MutableStateFlow(PlayState())
