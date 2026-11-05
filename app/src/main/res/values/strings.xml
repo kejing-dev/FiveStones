@@ -19,6 +19,8 @@
     <string name="status_your_move">%1$s: look at a point, a ghost stone shows up.</string>
     <string name="status_pinch">%1$s: pinch to drop it there.</string>
     <string name="status_thinking">%1$s is thinking</string>
+    <string name="status_ai_placing">%1$s is placing a stone</string>
+    <string name="confirm_new_game">Start a new game? This one will be dropped.</string>
     <string name="status_placing">Half a second to tap it back.</string>
     <string name="status_occupied">There\'s a stone there already.</string>
     <string name="status_forbidden">Black can\'t go there: %1$s.</string>
@@ -104,7 +106,7 @@
     <string name="result_white_resign">Black wins · White resigned</string>
     <string name="result_you_win">Five in a row. Watch them rise. Again?</string>
     <string name="result_you_lose">They got there first. Again?</string>
-    <string name="result_stats">%1$d moves · %2$s · %3$d hints</string>
+    <string name="result_stats">%1$d moves · %2$s · hint on for %3$d moves</string>
     <string name="result_shapes_on">Shapes was on this game.</string>
     <string name="result_renju_note">Forbidden moves use the simplified check.</string>
 
@@ -137,7 +139,7 @@
     <string name="settings_recall">Bring this window back</string>
     <string name="settings_recall_hint">Closes this window and opens it again in front of you.</string>
     <string name="settings_about">About</string>
-    <string name="settings_about_text">Five Stones %1$s · offline, no account. Icons: Material Symbols (Apache 2.0). Font: Noto Sans (OFL).</string>
+    <string name="settings_about_text">Five Stones %1$s · offline, no account. Icons: PICO ICON 7.0. Font: Noto Sans (OFL).</string>
     <string name="settings_exit">Quit app</string>
     <string name="level_hint">Look straight ahead and the panel opens</string>
     <string name="open_panel">Open panel</string>

@@ -36,6 +36,13 @@ object BoardTextures {
         val light = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.argb(18, 255, 240, 200); strokeWidth = 3f }
         for (i in 0 until 60) { val x = rnd.nextFloat() * size; c.drawLine(x, 0f, x, size.toFloat(), light) }
 
+        // A darker kaya band round the edge (about 1.2 cm) and a fine bevel line, so the board reads as a block.
+        val band = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.argb(70, 0x8C, 0x62, 0x30); style = Paint.Style.STROKE; strokeWidth = size * (0.012f / 0.70f) * 2f }
+        c.drawRect(0f, 0f, size.toFloat(), size.toFloat(), band)
+        val bevel = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.argb(120, 0x5A, 0x3C, 0x18); style = Paint.Style.STROKE; strokeWidth = size / 400f }
+        val inset = size * (0.012f / 0.70f)
+        c.drawRect(inset, inset, size - inset, size - inset, bevel)
+
         val pitch = size * PITCH_FRACTION
         val origin = size / 2f - 7 * pitch
         fun px(col: Int) = origin + col * pitch
@@ -85,7 +92,7 @@ object BoardTextures {
             val y = size / 2f + r * kotlin.math.sin(a)
             stone.color = if (black) Color.rgb(0x20 + rnd.nextInt(10), 0x23 + rnd.nextInt(10), 0x27 + rnd.nextInt(10)) else Color.rgb(0xEC - rnd.nextInt(14), 0xE9 - rnd.nextInt(14), 0xE0 - rnd.nextInt(14))
             c.drawCircle(x, y, size * 0.075f, stone)
-            hi.color = if (black) Color.argb(70, 120, 170, 165) else Color.argb(160, 255, 255, 255)
+            hi.color = if (black) Color.argb(150, 150, 190, 185) else Color.argb(160, 255, 255, 255)
             c.drawCircle(x - size * 0.02f, y - size * 0.02f, size * 0.022f, hi)
         }
         return bmp

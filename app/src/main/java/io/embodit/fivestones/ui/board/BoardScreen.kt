@@ -103,6 +103,20 @@ fun BoardScreen() {
         }
     }
 
+    // Leaving for the background stops the engine and saves; coming back resumes (design container.lifecycle).
+    val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(owner) {
+        val obs = androidx.lifecycle.LifecycleEventObserver { _, e ->
+            when (e) {
+                androidx.lifecycle.Lifecycle.Event.ON_STOP -> { Log.i(TAG, "LIFECYCLE background"); graph.flow.onBackground() }
+                androidx.lifecycle.Lifecycle.Event.ON_START -> { Log.i(TAG, "LIFECYCLE foreground"); graph.flow.onForeground() }
+                else -> Unit
+            }
+        }
+        owner.lifecycle.addObserver(obs)
+        onDispose { owner.lifecycle.removeObserver(obs) }
+    }
+
     DisposableEffect(scene) {
         SceneHolder.scene = scene
         SceneHolder.graph = graph
@@ -138,9 +152,7 @@ fun BoardScreen() {
             },
         attachments = {
             // The attachment is its own composition: hand it the localised context explicitly.
-            AttachmentPanel(PLATE) {
-                androidx.compose.runtime.CompositionLocalProvider(LocalContext provides context.localized(settings.language)) { Plate(state, graph) }
-            }
+            AttachmentPanel(PLATE) { PlateRoot(graph) }
         },
         initial = { content, attachments ->
             content.addEntity(scene.root)
@@ -157,6 +169,9 @@ fun BoardScreen() {
             }
             quick?.let { (s, c, m) -> scene.showFallback(s, c, m) }
             val resources = withContext(NonCancellable + Dispatchers.Default) { SceneResources.create() }
+            // QA only (debug broadcast `s00hold on`): keep the S00 stand-in for 10 s on the next launch so it can be captured.
+            val prefs = context.getSharedPreferences("debug", android.content.Context.MODE_PRIVATE)
+            if (prefs.getBoolean("s00hold", false)) { Log.i(TAG, "S00 hold 10 s"); kotlinx.coroutines.delay(10_000) }
             scene.install(resources, attachments.entity(PLATE))
         },
         update = { content, _ ->
@@ -169,22 +184,33 @@ fun BoardScreen() {
     )
 }
 
+/** The plate is its own composition: it reads state + language itself so a language switch always reaches it (critic 要改 6). */
+@Composable
+private fun PlateRoot(graph: Graph) {
+    val base = LocalContext.current
+    val st by graph.flow.state.collectAsStateWithLifecycle()
+    val s by graph.settings.settings.collectAsStateWithLifecycle()
+    androidx.compose.runtime.key(s.language) {
+        androidx.compose.runtime.CompositionLocalProvider(LocalContext provides base.localized(s.language)) { Plate(st, graph) }
+    }
+}
+
 /** The move plate above the far edge (100 x 35 mm): move number + whose turn; reads the same state as the window (D38). */
 @Composable
 private fun Plate(state: PlayState, graph: Graph) {
     val window = graph.window
     Box(
         modifier = Modifier
-            .size(width = 380.dp, height = 105.dp)
-            .clip(RoundedCornerShape(24.dp))
+            .size(width = 280.dp, height = 72.dp)
+            .clip(RoundedCornerShape(18.dp))
             .background(Color(0xF2FBF6EC)),
         contentAlignment = Alignment.Center,
     ) {
         when {
-            window.levelHint -> Text(stringResource(R.string.level_hint), color = FiveColors.Ink, fontSize = 22.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(12.dp))
+            window.levelHint -> Text(stringResource(R.string.level_hint), color = FiveColors.Ink, fontSize = 15.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(12.dp))
             window.panelState == "ON_DESTROY" -> Button(onClick = { window.request("chip") }) {
                 // design-style: inherited-content-color Button
-                Text(stringResource(R.string.open_panel), fontSize = 22.sp)
+                Text(stringResource(R.string.open_panel), fontSize = 16.sp)
             }
             else -> PlateText(state)
         }
@@ -200,11 +226,11 @@ private fun PlateText(state: PlayState) {
         state.result != null -> stringResource(R.string.plate_over, n)
         else -> stringResource(R.string.plate_turn, n + 1, stringResource(if (color == Board.BLACK) R.string.color_black else R.string.color_white))
     }
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(horizontal = 16.dp)) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(horizontal = 12.dp)) {
         if (state.config != null && state.result == null && state.phase !in setOf(Phase.SETUP, Phase.WELCOME)) {
-            Box(Modifier.size(26.dp).clip(CircleShape).background(if (color == Board.BLACK) FiveColors.StoneBlack else Color(0xFFFFFFFF)).border(2.dp, FiveColors.Ink, CircleShape))
+            Box(Modifier.size(18.dp).clip(CircleShape).background(if (color == Board.BLACK) FiveColors.StoneBlack else Color(0xFFFFFFFF)).border(2.dp, FiveColors.Ink, CircleShape))
         }
-        Text(text, color = FiveColors.Ink, fontSize = 23.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false,
+        Text(text, color = FiveColors.Ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false,
             onTextLayout = { if (it.hasVisualOverflow) Log.w(TAG, "OVERFLOW plate/turn \"$text\"") })
     }
 }

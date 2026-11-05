@@ -27,15 +27,19 @@ class BoardGeometry(val tiltDeg: Int = 20, val sizePct: Int = 100) {
         const val PITCH = 0.045f
         const val BOARD = 0.70f
         const val THICK = 0.03f
-        const val BOWL_R = 0.055f
-        const val BOWL_H = 0.06f
+        // v0.1.1 (critic block 3): the bowls were 6 cm tall and hid the near corners from the emulator's default
+        // eye (about 5-8° above the board). Lower, a little narrower and further forward they clear every point.
+        const val BOWL_R = 0.05f
+        const val BOWL_H = 0.035f
         const val BOWL_X = 0.29f
-        const val BOWL_GAP = 0.03f
+        const val BOWL_GAP = 0.05f
         /** Content is shifted toward the far side so board + bowls are centred in the 0.96 m depth. */
-        const val CONTENT_Z = -0.07f
+        const val CONTENT_Z = -0.075f
         const val ARC = 0.08f
-        const val PLATE_W = 0.10f
-        const val PLATE_H = 0.035f
+        /** Measured (v0.1.1): attachment panels render at ~0.0008 m per dp; the plate is 280 x 72 dp. */
+        const val PLATE_DP_M = 0.0008f
+        const val PLATE_W = 280 * PLATE_DP_M
+        const val PLATE_H = 72 * PLATE_DP_M
         const val PLATE_GAP = 0.02f
         val VOLUME = V3(0.84f, 0.54f, 0.96f)
     }

@@ -19,4 +19,5 @@ object Ui {
     var moreOpen by mutableStateOf(false)
     var renjuOpen by mutableStateOf(false)
     var exitConfirm by mutableStateOf(false)
+    var newConfirm by mutableStateOf(false)
 }

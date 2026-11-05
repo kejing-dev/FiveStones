@@ -19,7 +19,7 @@ enum class Phase(val id: String) {
     THINKING("S06"), ALERT("S08"), RESULT("S09"), PAUSED("S10"),
 }
 
-enum class Sound { PLACE, RETRACT, ILLEGAL, FORBIDDEN, HINT, WIN, DRAW }
+enum class Sound { PLACE, RETRACT, ILLEGAL, FORBIDDEN, HINT, WIN, LOSE, DRAW }
 
 enum class AlertKind { OCCUPIED, FORBIDDEN, ENDED }
 
@@ -230,6 +230,7 @@ class GameFlow(
             Phase.PLACING -> {
                 val until = st.retractUntil
                 if (until != null && clock() < until && p == st.lastMove && st.flight?.back != true) retract()
+                else log("TAP ignored ${Board.name(p)} (stone in flight / retract window)")
             }
             Phase.RESULT -> alert(AlertKind.ENDED, p, null)
             Phase.IDLE, Phase.PREVIEW, Phase.ALERT -> {
@@ -319,7 +320,10 @@ class GameFlow(
         cancelJobs()
         val st = s
         set(st.copy(phase = Phase.RESULT, result = result, elapsedMs = st.elapsedMs + (clock() - st.resumedAt), ghost = null, flight = null, retractUntil = null, hint = null, confirm = null))
-        onSound(if (result.winner == 0) Sound.DRAW else if (result.reason == EndReason.FIVE) Sound.WIN else Sound.DRAW)
+        // The opponent's five is not a fanfare (critic 要改 9c): an AI win plays the low "lose" note.
+        val cfg = st.config
+        val aiWon = cfg != null && cfg.mode == Mode.AI && result.winner == cfg.aiColor
+        onSound(when { result.winner == 0 -> Sound.DRAW; aiWon -> Sound.LOSE; result.reason == EndReason.FIVE -> Sound.WIN; else -> Sound.DRAW })
         log("RESULT winner=${result.winner} reason=${result.reason} moves=${st.moves.size} S09")
         if (st.firstGame) onSettings(settings().copy(coachDone = true))
         store.clear()
