@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Five Stones launcher foreground (tools/build_icon.py draws the same artwork for the PICO layered icon). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:strokeColor="#C83A2A16" android:strokeWidth="1.4" android:pathData="M18,36H90M36,18V90M18,54H90M54,18V90M18,72H90M72,18V90" />
+    <path android:fillColor="#FF2FA69A" android:pathData="M36.50,85.00L39.90,88.40L92.40,35.90L89.00,32.50Z" />
+    <path android:fillColor="#FF1C1F22" android:pathData="M22.80,78.00a7.20,7.20 0 1,0 14.40,0a7.20,7.20 0 1,0 -14.40,0ZM34.80,66.00a7.20,7.20 0 1,0 14.40,0a7.20,7.20 0 1,0 -14.40,0ZM46.80,54.00a7.20,7.20 0 1,0 14.40,0a7.20,7.20 0 1,0 -14.40,0ZM58.80,42.00a7.20,7.20 0 1,0 14.40,0a7.20,7.20 0 1,0 -14.40,0ZM70.80,30.00a7.20,7.20 0 1,0 14.40,0a7.20,7.20 0 1,0 -14.40,0Z" />
+    <path android:fillColor="#FF6E787C" android:pathData="M26.26,75.12a1.58,1.58 0 1,0 3.17,0a1.58,1.58 0 1,0 -3.17,0ZM38.26,63.12a1.58,1.58 0 1,0 3.17,0a1.58,1.58 0 1,0 -3.17,0ZM50.26,51.12a1.58,1.58 0 1,0 3.17,0a1.58,1.58 0 1,0 -3.17,0ZM62.26,39.12a1.58,1.58 0 1,0 3.17,0a1.58,1.58 0 1,0 -3.17,0ZM74.26,27.12a1.58,1.58 0 1,0 3.17,0a1.58,1.58 0 1,0 -3.17,0Z" />
+</vector>
