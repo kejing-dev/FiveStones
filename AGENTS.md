@@ -1,6 +1,6 @@
 # 五子棋 Five Stones: project guidance
 
-Gomoku for PICO OS 6 Shared Space, PICO Spatial SDK 6.1.9, package `io.embodit.fivestones`, v0.1.0.
+Gomoku for PICO OS 6 Shared Space, PICO Spatial SDK 6.1.9, package `io.embodit.fivestones`, v0.1.3 (this file was first written for v0.1.0; see git log for later changes).
 Design contract: spatial-app-factory `apps/five-stones/design-package.json` (v1.1, profile A12 main loop only; `v2[]` is
 not built: no replay / record code, no records, no second skin, no hand-over pause, no board rotation, no full RIF).
 Started from kejing-dev/CloudAir v1.0.2 (two containers, theme, sound pool); the gomoku domain is new.
