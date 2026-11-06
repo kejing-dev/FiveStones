@@ -6,6 +6,8 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -171,27 +173,28 @@ private fun whoName(state: PlayState, color: Int): String {
 private fun PlayPage(state: PlayState, settings: Settings, graph: Graph) {
     val flow = graph.flow
     if (state.config == null || state.phase in setOf(Phase.SETUP, Phase.WELCOME, Phase.LOADING)) {
-        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)) {
             PageTitle(stringResource(R.string.tab_play), "play")
-            Txt(stringResource(R.string.coach_1), "play/empty", maxLines = 3)
-            PrimaryButton(stringResource(R.string.btn_new_game), "play/new", onClick = { Ui.page = Page.NEW })
+            Txt(stringResource(R.string.coach_1), "play/empty", style = PicoTheme.typography.titleMedium, maxLines = 3)
+            PrimaryButton(stringResource(R.string.btn_new_game), "play/new", onClick = { Ui.page = Page.NEW }, modifier = Modifier.fillMaxWidth())
         }
         return
     }
-    Column(Modifier.fillMaxSize()) {
+    // Short page in a 640 dp window: content is centred vertically and the main actions are larger, so no big
+    // empty band is left (profile D44: blank <= 25 % of the window height).
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)) {
         // Turn chip + move number (same source as the plate on the board, D38)
-        Row(Modifier.fillMaxWidth().height(44.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().height(56.dp), verticalAlignment = Alignment.CenterVertically) {
             if (state.result == null) {
-                StoneDot(state.toMove, 22.dp)
-                Spacer(Modifier.width(10.dp))
-                Txt(whoName(state, state.toMove), "play/turn", style = PicoTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                StoneDot(state.toMove, 30.dp)
+                Spacer(Modifier.width(12.dp))
+                Txt(whoName(state, state.toMove), "play/turn", style = PicoTheme.typography.titleLarge, modifier = Modifier.weight(1f))
             } else Spacer(Modifier.weight(1f))
-            Txt(stringResource(R.string.move_n, state.moves.size), "play/moves", style = PicoTheme.typography.labelLarge, color = PicoTheme.colorScheme.labelSecondary)
+            Txt(stringResource(R.string.move_n, state.moves.size), "play/moves", style = PicoTheme.typography.titleMedium, color = PicoTheme.colorScheme.labelSecondary)
         }
-        Spacer(Modifier.height(10.dp))
         StatusLine(state)
-        Spacer(Modifier.height(14.dp))
-        Box(Modifier.fillMaxWidth().weight(1f)) {
+        GameInfoCard(state)
+        Box(Modifier.fillMaxWidth()) {
             when {
                 state.confirm != null -> ConfirmBlock(state.confirm, graph)
                 state.phase == Phase.PAUSED -> PauseBlock(graph)
@@ -208,10 +211,32 @@ private fun PlayPage(state: PlayState, settings: Settings, graph: Graph) {
                 ToggleButton(stringResource(R.string.btn_shapes), "play/shapes", on = state.shapesOn, onClick = { flow.setShapes(!state.shapesOn) }, modifier = Modifier.weight(1.05f))
                 ToggleButton(stringResource(R.string.btn_mute), "play/mute", on = !settings.sound, onClick = { graph.settings.update { it.copy(sound = !it.sound) } }, modifier = Modifier.weight(1f))
             }
-            Spacer(Modifier.height(10.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 SecondaryButton(stringResource(R.string.btn_more) + if (Ui.moreOpen) " ▴" else " ▾", "play/more", onClick = { Ui.moreOpen = !Ui.moreOpen })
             }
+        }
+    }
+}
+
+/** Who plays what under which rule, plus the pillar colour key (fills the play page, D44 blank <= 25 %). */
+@Composable
+private fun GameInfoCard(state: PlayState) {
+    val cfg = state.config ?: return
+    Column(
+        Modifier.fillMaxWidth().clip(androidx.compose.foundation.shape.RoundedCornerShape(20.dp))
+            .background(PicoTheme.colorScheme.fillSecondary).padding(horizontal = 18.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        val who = if (cfg.mode == Mode.AI) stringResource(R.string.info_vs_ai, levelName(cfg.level), colorName(cfg.humanColor)) else stringResource(R.string.info_2p)
+        val rule = stringResource(if (cfg.renju) R.string.info_rule_renju else R.string.info_rule_free)
+        Txt("$who · $rule", "play/info", style = PicoTheme.typography.bodyLarge, maxLines = 2)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Box(Modifier.size(14.dp, 24.dp).background(FiveColors.Primary))
+            Txt(stringResource(R.string.legend_mine), "play/legend-mine", style = PicoTheme.typography.bodyMedium)
+            Spacer(Modifier.width(12.dp))
+            Box(Modifier.size(14.dp, 24.dp).background(FiveColors.Tertiary))
+            Txt(stringResource(R.string.legend_theirs), "play/legend-theirs", style = PicoTheme.typography.bodyMedium)
+            if (!state.shapesOn) { Spacer(Modifier.width(12.dp)); Txt(stringResource(R.string.legend_off), "play/legend-off", style = PicoTheme.typography.bodySmall, color = PicoTheme.colorScheme.labelSecondary) }
         }
     }
 }
@@ -237,12 +262,12 @@ private fun StatusLine(state: PlayState) {
         else -> stringResource(R.string.status_your_move, whoName(state, state.toMove))
     }
     val color = if (alert != null && alert.kind != AlertKind.ENDED) FiveColors.ErrorText else PicoTheme.colorScheme.labelPrimary
-    Row(Modifier.fillMaxWidth().height(64.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().height(72.dp), verticalAlignment = Alignment.CenterVertically) {
         if (state.phase == Phase.THINKING) {
             CircularProgressIndicator(modifier = Modifier.size(28.dp))
             Spacer(Modifier.width(12.dp))
         }
-        Txt(text, "play/status", style = PicoTheme.typography.bodyLarge, color = color, maxLines = 2, modifier = Modifier.weight(1f))
+        Txt(text, "play/status", style = PicoTheme.typography.titleMedium, color = color, maxLines = 2, modifier = Modifier.weight(1f))
     }
 }
 
@@ -259,13 +284,16 @@ private fun MoreBlock(graph: Graph) {
 @Composable
 private fun PauseBlock(graph: Graph) {
     val flow = graph.flow
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    // A large Resume and a 2 x 2 grid, so the pause page is not half empty (D44).
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         PrimaryButton(stringResource(R.string.btn_resume), "pause/resume", onClick = { flow.resume() }, modifier = Modifier.fillMaxWidth())
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            SecondaryButton(stringResource(R.string.btn_new_game), "pause/new", onClick = { flow.requestConfirm(ConfirmKind.NEW_FROM_PAUSE) }, modifier = Modifier.weight(1f))
-            SecondaryButton(stringResource(R.string.btn_rules), "pause/rules", onClick = { Ui.page = Page.RULES }, modifier = Modifier.weight(1f))
-            SecondaryButton(stringResource(R.string.btn_settings), "pause/settings", onClick = { Ui.page = Page.SETTINGS }, modifier = Modifier.weight(1f))
-            SecondaryButton(stringResource(R.string.btn_leave), "pause/leave", onClick = { flow.requestConfirm(ConfirmKind.LEAVE) }, modifier = Modifier.weight(1f))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            SecondaryButton(stringResource(R.string.btn_new_game), "pause/new", onClick = { flow.requestConfirm(ConfirmKind.NEW_FROM_PAUSE) }, modifier = Modifier.weight(1f), tall = true)
+            SecondaryButton(stringResource(R.string.btn_rules), "pause/rules", onClick = { Ui.page = Page.RULES }, modifier = Modifier.weight(1f), tall = true)
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            SecondaryButton(stringResource(R.string.btn_settings), "pause/settings", onClick = { Ui.page = Page.SETTINGS }, modifier = Modifier.weight(1f), tall = true)
+            SecondaryButton(stringResource(R.string.btn_leave), "pause/leave", onClick = { flow.requestConfirm(ConfirmKind.LEAVE) }, modifier = Modifier.weight(1f), tall = true)
         }
     }
 }
@@ -333,28 +361,29 @@ private fun ResultBlock(state: PlayState, graph: Graph) {
 private fun NewPage(state: PlayState, settings: Settings, graph: Graph) {
     val setup = settings.lastSetup
     fun set(change: (GameSetup) -> GameSetup) = graph.settings.update { it.copy(lastSetup = change(it.lastSetup)) }
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    // Centred, taller rows and a large Start, so the page has no big empty band (D44).
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)) {
         PageTitle(stringResource(R.string.new_title), "new")
         if (state.savedAvailable && state.phase == Phase.SETUP) {
             SecondaryButton(stringResource(R.string.btn_continue), "new/continue", onClick = { graph.flow.continueSaved() }, modifier = Modifier.fillMaxWidth())
         }
-        OptionRow(stringResource(R.string.new_opponent), "new/opponent") {
+        OptionRow(stringResource(R.string.new_opponent), "new/opponent", rowHeight = 68.dp) {
             Segments(listOf(Mode.AI to stringResource(R.string.new_vs_ai), Mode.TWO_PLAYER to stringResource(R.string.new_two_players)), setup.mode, "new/opponent", { m -> set { it.copy(mode = m) } }, Modifier.weight(1f))
         }
         if (setup.mode == Mode.AI) {
-            OptionRow(stringResource(R.string.new_side), "new/side") {
+            OptionRow(stringResource(R.string.new_side), "new/side", rowHeight = 68.dp) {
                 Segments(
                     listOf(SidePick.BLACK to stringResource(R.string.new_side_black), SidePick.WHITE to stringResource(R.string.new_side_white), SidePick.RANDOM to stringResource(R.string.new_side_random)),
                     setup.side, "new/side", { s -> set { it.copy(side = s) } }, Modifier.weight(1f),
                 )
             }
-            OptionRow(stringResource(R.string.new_level), "new/level", labelWidth = 92.dp) {
+            OptionRow(stringResource(R.string.new_level), "new/level", labelWidth = 92.dp, rowHeight = 68.dp) {
                 Segments((1..5).map { it to levelName(it) }, setup.level, "new/level", { l -> set { it.copy(level = l) } }, Modifier.weight(1f), small = true)
             }
         } else {
             Txt(stringResource(R.string.new_two_players_note), "new/2p-note", style = PicoTheme.typography.bodyMedium, color = PicoTheme.colorScheme.labelSecondary, maxLines = 2, modifier = Modifier.padding(vertical = 8.dp))
         }
-        OptionRow(stringResource(R.string.new_rule), "new/rule") {
+        OptionRow(stringResource(R.string.new_rule), "new/rule", rowHeight = 68.dp) {
             Segments(listOf(false to stringResource(R.string.new_rule_free), true to stringResource(R.string.new_rule_renju)), setup.renju, "new/rule", { v -> set { it.copy(renju = v) } }, Modifier.weight(1f))
         }
         Txt("ⓘ " + stringResource(R.string.new_renju_info), "new/renju-info", style = PicoTheme.typography.bodySmall, color = PicoTheme.colorScheme.labelSecondary, maxLines = 2)

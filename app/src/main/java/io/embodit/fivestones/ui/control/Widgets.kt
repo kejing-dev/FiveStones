@@ -56,8 +56,8 @@ internal fun Txt(
 internal fun PrimaryButton(text: String, tag: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     Button(
         onClick = onClick, modifier = modifier, enabled = enabled,
-        size = ButtonDefaults.Regular.copy(height = 56.dp, minWidth = 160.dp),
-        shape = RoundedCornerShape(28.dp),
+        size = ButtonDefaults.Regular.copy(height = 68.dp, minWidth = 160.dp),
+        shape = RoundedCornerShape(34.dp),
         colors = ButtonDefaults.buttonColors(containerColor = PicoTheme.colorScheme.interaction, contentColor = PicoTheme.colorScheme.labelPrimaryLight),
     ) {
         // design-style: inherited-content-color Button
@@ -66,11 +66,11 @@ internal fun PrimaryButton(text: String, tag: String, onClick: () -> Unit, modif
 }
 
 @Composable
-internal fun SecondaryButton(text: String, tag: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, danger: Boolean = false) {
+internal fun SecondaryButton(text: String, tag: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, danger: Boolean = false, tall: Boolean = false) {
     Button(
         onClick = onClick, modifier = modifier, enabled = enabled,
-        size = ButtonDefaults.Regular.copy(height = 52.dp, minWidth = 96.dp),
-        shape = RoundedCornerShape(26.dp),
+        size = ButtonDefaults.Regular.copy(height = if (tall) 64.dp else 52.dp, minWidth = 96.dp),
+        shape = RoundedCornerShape(if (tall) 32.dp else 26.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = if (danger) FiveColors.Error else PicoTheme.colorScheme.fillSecondary,
             contentColor = if (danger) FiveColors.OnError else PicoTheme.colorScheme.labelPrimary,
@@ -100,8 +100,8 @@ internal fun ToggleButton(text: String, tag: String, on: Boolean, onClick: () ->
 
 /** A labelled row holding a same-page option switch (SegmentControl is never used to change pages). */
 @Composable
-internal fun OptionRow(label: String, tag: String, labelWidth: Dp = 112.dp, content: @Composable RowScope.() -> Unit) {
-    Row(Modifier.fillMaxWidth().height(56.dp), verticalAlignment = Alignment.CenterVertically) {
+internal fun OptionRow(label: String, tag: String, labelWidth: Dp = 112.dp, rowHeight: Dp = 56.dp, content: @Composable RowScope.() -> Unit) {
+    Row(Modifier.fillMaxWidth().height(rowHeight), verticalAlignment = Alignment.CenterVertically) {
         Txt(label, "$tag/label", style = PicoTheme.typography.labelLarge, color = PicoTheme.colorScheme.labelPrimary, modifier = Modifier.width(labelWidth))
         content()
     }

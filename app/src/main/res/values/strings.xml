@@ -148,4 +148,11 @@
     <string name="settings_exit">Quit app</string>
     <string name="level_hint">Look straight ahead and the panel opens</string>
     <string name="open_panel">Open panel</string>
+    <string name="info_vs_ai">vs AI %1$s · you play %2$s</string>
+    <string name="info_2p">Two players, one headset</string>
+    <string name="info_rule_free">free rule</string>
+    <string name="info_rule_renju">forbidden moves (simplified)</string>
+    <string name="legend_mine">your chance</string>
+    <string name="legend_theirs">their threat</string>
+    <string name="legend_off">(Shapes off)</string>
 </resources>
