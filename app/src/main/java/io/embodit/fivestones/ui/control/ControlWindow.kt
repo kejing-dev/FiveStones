@@ -482,8 +482,8 @@ private fun SettingsPage(settings: Settings, graph: Graph) {
         }
         Spacer(Modifier.height(4.dp))
         SecondaryButton(stringResource(R.string.settings_recall), "settings/reopen", onClick = { graph.window.recall() }, modifier = Modifier.fillMaxWidth())
-        Txt(stringResource(R.string.settings_recall_hint), "settings/reopen-hint", style = PicoTheme.typography.bodySmall, color = PicoTheme.colorScheme.labelSecondary, maxLines = 2, modifier = Modifier.padding(top = 4.dp))
-        Txt(stringResource(R.string.settings_about_text, BuildConfig.VERSION_NAME), "settings/about", style = PicoTheme.typography.bodySmall, color = PicoTheme.colorScheme.labelSecondary, maxLines = 1, modifier = Modifier.padding(vertical = 6.dp))
+        Txt(stringResource(R.string.settings_recall_hint), "settings/reopen-hint", style = PicoTheme.typography.bodySmall, color = PicoTheme.colorScheme.labelSecondary, maxLines = 3, modifier = Modifier.padding(top = 4.dp))
+        Txt(stringResource(R.string.settings_about_text, BuildConfig.VERSION_NAME), "settings/about", style = PicoTheme.typography.bodySmall, color = PicoTheme.colorScheme.labelSecondary, maxLines = 2, modifier = Modifier.padding(vertical = 6.dp))
         // D26: quit is the last row; the confirmation opens in the same row (no second panel, no scrolling).
         if (!Ui.exitConfirm) {
             SecondaryButton(stringResource(R.string.settings_exit), "settings/exit", onClick = { Ui.exitConfirm = true; Log.i(TAG, "CONFIRM EXIT S13") }, modifier = Modifier.fillMaxWidth(), danger = true)

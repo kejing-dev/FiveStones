@@ -110,6 +110,8 @@ class GameFlow(
     private val random = Random(seed)
     var aiSeed: Int = seed
     var holdThinking: Boolean = false
+    /** Debug: keep the current alert (status line + plate reason) on screen until released, for screenshots. */
+    var holdAlert: Boolean = false
 
     private var settleJob: Job? = null
     private var thinkJob: Job? = null
@@ -254,6 +256,7 @@ class GameFlow(
         alertJob?.cancel()
         alertJob = scope.launch {
             delay(ALERT_MS)
+            while (holdAlert) delay(100)
             val now = s
             if (now.alert?.at == at) set(now.copy(alert = null, phase = if (now.phase == Phase.ALERT) (if (now.ghost != null) Phase.PREVIEW else Phase.IDLE) else now.phase))
         }

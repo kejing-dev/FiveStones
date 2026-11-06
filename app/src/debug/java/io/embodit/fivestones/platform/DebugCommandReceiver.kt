@@ -30,7 +30,7 @@ import io.embodit.fivestones.ui.board.SceneHolder
  *   undo · redo · hint on|off · shapes on|off · pause · resume · resign · restart · confirm · cancel
  *   level 1-5 · lang zh|en|system · tilt 0|20|28 · size 100|110 · sound on|off · volume 0-2 · reduced on|off
  *   page play|new|rules|settings · more on|off · renju on|off · exitask · hold on|off (AI waits) · seed N
- *   s00hold on|off (next launch keeps the S00 stand-in 10 s) · welcome (finish S01) · recall · dump · evidence
+ *   alerthold on|off (keep an S08 alert for screenshots) · s00hold on|off (next launch keeps the S00 stand-in 10 s) · welcome (finish S01) · recall · dump · evidence
  */
 class DebugCommandReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -104,6 +104,7 @@ class DebugCommandReceiver : BroadcastReceiver() {
             "more" -> Ui.moreOpen = on
             "renju" -> Ui.renjuOpen = on
             "hold" -> flow.holdThinking = on
+            "alerthold" -> flow.holdAlert = on
             "seed" -> a.toIntOrNull()?.let { flow.aiSeed = it }
             "recall" -> graph.window.recall()
             "dump", "state" -> Log.i(TAG, "DUMP ${flow.dump()} page=${Ui.page} window=${graph.window.panelState}")
