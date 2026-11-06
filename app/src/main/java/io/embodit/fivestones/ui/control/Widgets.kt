@@ -87,8 +87,8 @@ internal fun ToggleButton(text: String, tag: String, on: Boolean, onClick: () ->
     val fg = if (on) PicoTheme.colorScheme.labelPrimaryLight else PicoTheme.colorScheme.labelPrimary
     Button(
         onClick = onClick, modifier = modifier, enabled = enabled,
-        size = ButtonDefaults.Regular.copy(height = 52.dp, minWidth = 96.dp),
-        shape = RoundedCornerShape(26.dp),
+        size = ButtonDefaults.Regular.copy(height = 64.dp, minWidth = 96.dp),
+        shape = RoundedCornerShape(32.dp),
         colors = ButtonDefaults.buttonColors(containerColor = if (on) PicoTheme.colorScheme.interaction else PicoTheme.colorScheme.fillSecondary, contentColor = fg),
     ) {
         Box(Modifier.size(10.dp).clip(CircleShape).background(if (on) FiveColors.PrimaryContainer else Color.Transparent).border(1.5.dp, fg, CircleShape))

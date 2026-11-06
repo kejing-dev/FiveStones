@@ -182,7 +182,7 @@ private fun PlayPage(state: PlayState, settings: Settings, graph: Graph) {
     }
     // Short page in a 640 dp window: content is centred vertically and the main actions are larger, so no big
     // empty band is left (profile D44: blank <= 25 % of the window height).
-    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)) {
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)) {
         // Turn chip + move number (same source as the plate on the board, D38)
         Row(Modifier.fillMaxWidth().height(56.dp), verticalAlignment = Alignment.CenterVertically) {
             if (state.result == null) {
@@ -206,13 +206,13 @@ private fun PlayPage(state: PlayState, settings: Settings, graph: Graph) {
         }
         if (state.result == null && state.phase != Phase.PAUSED && state.confirm == null) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                SecondaryButton(stringResource(R.string.btn_undo), "play/undo", onClick = { flow.requestUndo() }, enabled = state.canUndo, modifier = Modifier.weight(1f))
+                SecondaryButton(stringResource(R.string.btn_undo), "play/undo", onClick = { flow.requestUndo() }, enabled = state.canUndo, modifier = Modifier.weight(1f), tall = true)
                 ToggleButton(stringResource(R.string.btn_hint), "play/hint", on = state.hintOn, onClick = { flow.setHint(!state.hintOn) }, modifier = Modifier.weight(1.05f))
                 ToggleButton(stringResource(R.string.btn_shapes), "play/shapes", on = state.shapesOn, onClick = { flow.setShapes(!state.shapesOn) }, modifier = Modifier.weight(1.05f))
                 ToggleButton(stringResource(R.string.btn_mute), "play/mute", on = !settings.sound, onClick = { graph.settings.update { it.copy(sound = !it.sound) } }, modifier = Modifier.weight(1f))
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                SecondaryButton(stringResource(R.string.btn_more) + if (Ui.moreOpen) " ▴" else " ▾", "play/more", onClick = { Ui.moreOpen = !Ui.moreOpen })
+                SecondaryButton(stringResource(R.string.btn_more) + if (Ui.moreOpen) " ▴" else " ▾", "play/more", onClick = { Ui.moreOpen = !Ui.moreOpen }, tall = true)
             }
         }
     }
@@ -238,6 +238,7 @@ private fun GameInfoCard(state: PlayState) {
             Txt(stringResource(R.string.legend_theirs), "play/legend-theirs", style = PicoTheme.typography.bodyMedium)
             if (!state.shapesOn) { Spacer(Modifier.width(12.dp)); Txt(stringResource(R.string.legend_off), "play/legend-off", style = PicoTheme.typography.bodySmall, color = PicoTheme.colorScheme.labelSecondary) }
         }
+        Txt(stringResource(R.string.legend_heights), "play/legend-heights", style = PicoTheme.typography.bodyMedium, color = PicoTheme.colorScheme.labelSecondary, maxLines = 2)
     }
 }
 
@@ -251,7 +252,11 @@ private fun StatusLine(state: PlayState) {
         alert != null && alert.kind == AlertKind.FORBIDDEN -> stringResource(R.string.status_forbidden, forbiddenName(alert.reason!!))
         alert != null && alert.kind == AlertKind.ENDED -> stringResource(R.string.status_ended)
         state.phase == Phase.PAUSED -> stringResource(R.string.status_paused)
-        state.result != null -> ""
+        state.result != null -> state.config?.let { c -> when {
+            c.mode == Mode.AI && state.result.winner == c.humanColor -> stringResource(R.string.result_you_win)
+            c.mode == Mode.AI && state.result.winner != 0 -> stringResource(R.string.result_you_lose)
+            else -> stringResource(R.string.status_ended)
+        } } ?: ""
         state.phase == Phase.THINKING -> stringResource(R.string.status_thinking, whoName(state, state.toMove))
         state.phase == Phase.PLACING && state.retractUntil != null -> stringResource(R.string.status_placing)
         state.phase == Phase.PLACING && state.flight != null -> stringResource(R.string.status_ai_placing, whoName(state, state.flight.color))
@@ -275,9 +280,9 @@ private fun StatusLine(state: PlayState) {
 private fun MoreBlock(graph: Graph) {
     val flow = graph.flow
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        SecondaryButton(stringResource(R.string.btn_pause), "more/pause", onClick = { Ui.moreOpen = false; flow.pause() }, modifier = Modifier.weight(1f))
-        SecondaryButton(stringResource(R.string.btn_resign), "more/resign", onClick = { Ui.moreOpen = false; flow.requestConfirm(ConfirmKind.RESIGN) }, modifier = Modifier.weight(1f))
-        SecondaryButton(stringResource(R.string.btn_restart), "more/restart", onClick = { Ui.moreOpen = false; flow.requestConfirm(ConfirmKind.RESTART) }, modifier = Modifier.weight(1f))
+        SecondaryButton(stringResource(R.string.btn_pause), "more/pause", onClick = { Ui.moreOpen = false; flow.pause() }, modifier = Modifier.weight(1f), tall = true)
+        SecondaryButton(stringResource(R.string.btn_resign), "more/resign", onClick = { Ui.moreOpen = false; flow.requestConfirm(ConfirmKind.RESIGN) }, modifier = Modifier.weight(1f), tall = true)
+        SecondaryButton(stringResource(R.string.btn_restart), "more/restart", onClick = { Ui.moreOpen = false; flow.requestConfirm(ConfirmKind.RESTART) }, modifier = Modifier.weight(1f), tall = true)
     }
 }
 
@@ -334,16 +339,10 @@ private fun ResultBlock(state: PlayState, graph: Graph) {
             EndReason.RESIGN -> if (r.winner == Board.WHITE) R.string.result_black_resign else R.string.result_white_resign
         },
     )
-    val line = when {
-        cfg.mode == Mode.AI && r.winner == cfg.humanColor -> stringResource(R.string.result_you_win)
-        cfg.mode == Mode.AI && r.winner != 0 -> stringResource(R.string.result_you_lose)
-        else -> null
-    }
     val secs = state.elapsedMs / 1000
     val time = "%d:%02d".format(secs / 60, secs % 60)
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Txt(title, "result/title", style = PicoTheme.typography.titleLarge, color = PicoTheme.colorScheme.labelPrimary)
-        line?.let { Txt(it, "result/line", style = PicoTheme.typography.bodyLarge) }
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Txt(title, "result/title", style = PicoTheme.typography.headlineSmall, color = PicoTheme.colorScheme.labelPrimary)
         Txt(stringResource(R.string.result_stats, state.moves.size, time, state.hintCount), "result/stats", style = PicoTheme.typography.bodyMedium, color = PicoTheme.colorScheme.labelSecondary)
         if (state.shapesWasOn) Txt(stringResource(R.string.result_shapes_on), "result/shapes", style = PicoTheme.typography.bodySmall, color = PicoTheme.colorScheme.labelSecondary)
         if (cfg.renju) Txt(stringResource(R.string.result_renju_note), "result/renju", style = PicoTheme.typography.bodySmall, color = PicoTheme.colorScheme.labelSecondary)
@@ -408,27 +407,53 @@ private fun NewPage(state: PlayState, settings: Settings, graph: Graph) {
 @Composable
 private fun RulesPage(state: PlayState, graph: Graph) {
     // Three views switched inside the page (same-page option, not page navigation), each fits without scrolling (D44).
-    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    // Centred as a whole (segment + content + Start), so no large empty band is left (D44 blank <= 25 %).
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterVertically)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Segments(
                 listOf(0 to stringResource(R.string.rules_seg_how), 1 to stringResource(R.string.rules_mistakes), 2 to stringResource(R.string.rules_seg_renju)),
                 Ui.rulesView, "rules/view", { Ui.rulesView = it }, Modifier.weight(1f),
             )
         }
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             when (Ui.rulesView) {
                 0 -> {
                     if (state.phase == Phase.WELCOME) Txt(stringResource(R.string.welcome_title), "rules/welcome", style = PicoTheme.typography.titleMedium)
                     RulesDiagram()
                     listOf(R.string.rules_1, R.string.rules_2, R.string.rules_3, R.string.rules_4).forEach { Txt(stringResource(it), "rules/line", style = PicoTheme.typography.bodyMedium, maxLines = 4) }
                 }
-                1 -> listOf(R.string.mistake_1, R.string.mistake_2, R.string.mistake_3, R.string.mistake_4).forEach { Txt("· " + stringResource(it), "rules/mistake", style = PicoTheme.typography.bodyLarge, maxLines = 4) }
-                else -> listOf(R.string.renju_1, R.string.renju_2, R.string.renju_3).forEach { Txt(stringResource(it), "rules/renju-line", style = PicoTheme.typography.bodyLarge, maxLines = 4) }
+                1 -> { RulesDiagram() }
+                else -> { ForbiddenDiagram() }
+            }
+            when (Ui.rulesView) {
+                0 -> Unit
+                1 -> listOf(R.string.mistake_1, R.string.mistake_2, R.string.mistake_3, R.string.mistake_4).forEach { Txt("· " + stringResource(it), "rules/mistake", style = PicoTheme.typography.bodyLarge, maxLines = 4, modifier = Modifier.padding(vertical = 3.dp)) }
+                else -> listOf(R.string.renju_1, R.string.renju_2, R.string.renju_3).forEach { Txt(stringResource(it), "rules/renju-line", style = PicoTheme.typography.titleMedium, maxLines = 4, modifier = Modifier.padding(vertical = 10.dp)) }
             }
         }
         if (state.phase == Phase.WELCOME) {
             PrimaryButton(stringResource(R.string.welcome_start), "rules/welcome-start", onClick = { graph.flow.welcomeDone() }, modifier = Modifier.fillMaxWidth())
         }
+    }
+}
+
+/** The double three that is forbidden for Black: two open threes meet on one point, marked with the red cross. */
+@Composable
+private fun ForbiddenDiagram() {
+    val wood = FiveColors.Kaya
+    val ink = FiveColors.BoardInk
+    Canvas(Modifier.size(width = 240.dp, height = 120.dp)) {
+        val cell = size.height / 7f
+        drawRoundRect(wood, cornerRadius = androidx.compose.ui.geometry.CornerRadius(12f, 12f))
+        for (i in 0..6) drawLine(ink, Offset(cell * 0.5f, cell * (i + 0.5f)), Offset(size.width - cell * 0.5f, cell * (i + 0.5f)), strokeWidth = 1.5f)
+        var x = cell * 0.5f
+        while (x < size.width) { drawLine(ink, Offset(x, cell * 0.5f), Offset(x, size.height - cell * 0.5f), strokeWidth = 1.5f); x += cell }
+        fun stone(c: Int, r: Int) = drawCircle(FiveColors.StoneBlack, cell * 0.42f, Offset(cell * (c + 0.5f), cell * (r + 0.5f)))
+        // row 3: two black stones, column 6: two black stones, both open; the crossing point (6, 3) would make a double three
+        stone(4, 3); stone(5, 3); stone(6, 1); stone(6, 2)
+        val o = Offset(cell * 6.5f, cell * 3.5f); val d = cell * 0.32f
+        drawLine(FiveColors.Error, Offset(o.x - d, o.y - d), Offset(o.x + d, o.y + d), strokeWidth = cell * 0.16f)
+        drawLine(FiveColors.Error, Offset(o.x - d, o.y + d), Offset(o.x + d, o.y - d), strokeWidth = cell * 0.16f)
     }
 }
 

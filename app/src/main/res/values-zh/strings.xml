@@ -155,4 +155,5 @@
     <string name="legend_mine">你的机会</string>
     <string name="legend_theirs">对面威胁</string>
     <string name="legend_off">（看棋形已关）</string>
+    <string name="legend_heights">光柱越高越急：活三 3 cm · 冲四 5 cm · 活四 7 cm</string>
 </resources>

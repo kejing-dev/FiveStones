@@ -155,4 +155,5 @@
     <string name="legend_mine">your chance</string>
     <string name="legend_theirs">their threat</string>
     <string name="legend_off">(Shapes off)</string>
+    <string name="legend_heights">Pillar height = urgency: 3 cm open three · 5 cm four · 7 cm open four</string>
 </resources>
