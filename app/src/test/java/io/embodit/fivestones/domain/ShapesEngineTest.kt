@@ -78,7 +78,7 @@ class ShapesEngineTest {
             for (i in 0 until 3) { g += three[i]; g += whites[i] }
             g += Board.at(if (r > 7) 14 else 0, 7)
             // now white to move (7 moves: 4 black, 3 white)
-            for (level in 2..3) {
+            for (level in 2..5) {
                 val m = Engine(Random(k)).bestMove(g, Board.WHITE, false, level)
                 total++
                 val ends = listOf(Board.at(c - 1, r), Board.at(c + 3, r))
@@ -151,6 +151,38 @@ class ShapesEngineTest {
         println("naive bot vs level 1: $naiveWins / 20")
         assertTrue("naive won $naiveWins / 20", naiveWins >= 10)
     }
+
+    /** One game between two levels from a random 2-move opening near the centre (levels 3-5 are deterministic). */
+    private fun match(hi: Int, lo: Int, games: Int, seed: Int): Int {
+        var wins = 0
+        repeat(games) { g ->
+            val rnd = Random(seed + g)
+            val opening = ArrayList<Int>()
+            while (opening.size < 2) {
+                val q = Board.at(5 + rnd.nextInt(5), 5 + rnd.nextInt(5))
+                if (q !in opening) opening += q
+            }
+            val eh = Engine(Random(seed * 7 + g)); val el = Engine(Random(seed * 11 + g))
+            val hiBlack = g % 2 == 0
+            val moves = ArrayList(opening)
+            var winner = 0
+            while (true) {
+                val color = Board.colorToMove(moves.size)
+                val useHi = (color == Board.BLACK) == hiBlack
+                moves += (if (useHi) eh else el).bestMove(moves, color, false, if (useHi) hi else lo)
+                val r = Outcome.after(moves, false)
+                if (r != null) { winner = r.winner; break }
+            }
+            if (winner == (if (hiBlack) Board.BLACK else Board.WHITE)) wins++
+        }
+        println("level $hi vs level $lo: $wins / $games")
+        return wins
+    }
+
+    /** design mustPass: five levels strictly ordered, each level beats the one below in >= 70 % (adjacent pairs). */
+    @Test fun adjacentLevelsThreeOverTwo() { assertTrue(match(3, 2, 20, 31) >= 14) }
+    @Test fun adjacentLevelsFourOverThree() { assertTrue(match(4, 3, 20, 41) >= 14) }
+    @Test fun adjacentLevelsFiveOverFour() { assertTrue(match(5, 4, 20, 51) >= 14) }
 
     @Test fun middleBeatsBeginner() {
         var wins = 0

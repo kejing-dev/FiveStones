@@ -148,4 +148,11 @@
     <string name="settings_exit">退出应用</string>
     <string name="level_hint">平视前方，面板就出来</string>
     <string name="open_panel">打开面板</string>
+    <string name="info_vs_ai">对手 AI %1$s · 你执%2$s</string>
+    <string name="info_2p">双人同机</string>
+    <string name="info_rule_free">自由规则</string>
+    <string name="info_rule_renju">禁手（简化判定）</string>
+    <string name="legend_mine">你的机会</string>
+    <string name="legend_theirs">对面威胁</string>
+    <string name="legend_off">（看棋形已关）</string>
 </resources>

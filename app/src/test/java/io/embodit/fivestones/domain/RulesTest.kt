@@ -63,6 +63,12 @@ class RulesTest {
         // Four on row 8 (E8 F8 G8 + H8) and on column H (H9 H10 H11 + H8), both closed by White.
         assertEquals(Forbidden.DOUBLE_FOUR, Rules.forbidden(board("E8 F8 G8 H9 H10 H11", "D8 H12"), p("H8"), true))
         assertEquals(Forbidden.DOUBLE_FOUR, Rules.forbidden(board("A1 A2 A3 B4 C4 D4", "O15"), p("A4"), true))
+        // Corner: row 1 (L1 M1 N1 + O1) and column O (O2 O3 O4 + O1), each one way to five.
+        assertEquals(Forbidden.DOUBLE_FOUR, Rules.forbidden(board("L1 M1 N1 O2 O3 O4"), p("O1"), true))
+        // Diagonal + anti-diagonal through G7 (D4 E5 F6 + G7, J4 I5 H6 + G7).
+        assertEquals(Forbidden.DOUBLE_FOUR, Rules.forbidden(board("D4 E5 F6 J4 I5 H6"), p("G7"), true))
+        // Row + diagonal through H8, each closed on one end by White (E8 F8 G8 | D8 white; I9 J10 K11 | L12 white).
+        assertEquals(Forbidden.DOUBLE_FOUR, Rules.forbidden(board("E8 F8 G8 I9 J10 K11", "D8 L12"), p("H8"), true))
         // A dead four (both ends blocked) is not a four.
         assertNull(Rules.forbidden(board("A1 A2 A3 B4 C4 D4", "E4 A5"), p("A4"), true))
     }

@@ -18,7 +18,7 @@ class Engine(
     private val random: Random = Random(7),
     private val now: () -> Long = { System.nanoTime() / 1_000_000 },
 ) {
-    data class Level(val depth: Int, val timeMs: Long, val randomTop: Int, val blocksThrees: Boolean, val width: Int, val vcf: Int)
+    data class Level(val depth: Int, val timeMs: Long, val randomTop: Int, val blocksThrees: Boolean, val width: Int, val vcf: Int, val defend: Int = 0, val margin: Int = 1500)
 
     companion object {
         const val WIN = 10_000_000
@@ -26,10 +26,13 @@ class Engine(
 
         fun level(n: Int): Level = when (n.coerceIn(1, 5)) {
             1 -> Level(depth = 1, timeMs = 200, randomTop = 5, blocksThrees = false, width = 40, vcf = 0)
-            2 -> Level(depth = 2, timeMs = 300, randomTop = 3, blocksThrees = true, width = 12, vcf = 0)
-            3 -> Level(depth = 4, timeMs = 300, randomTop = 1, blocksThrees = true, width = 10, vcf = 0)
-            4 -> Level(depth = 6, timeMs = 800, randomTop = 1, blocksThrees = true, width = 10, vcf = 6)
-            else -> Level(depth = 8, timeMs = 2000, randomTop = 1, blocksThrees = true, width = 10, vcf = 12)
+            // Each level adds one capability on top of the one below, so adjacent levels are clearly ordered
+            // (mustPass: adjacent pairs >= 70 %): 2 = shallow + random, 3 = deeper + own VCF, 4 = + defends against the
+            // opponent's VCF, 5 = deepest search, longest VCF / defence.
+            2 -> Level(depth = 2, timeMs = 300, randomTop = 3, blocksThrees = true, width = 12, vcf = 0, margin = 4000)
+            3 -> Level(depth = 4, timeMs = 300, randomTop = 1, blocksThrees = true, width = 10, vcf = 6)
+            4 -> Level(depth = 6, timeMs = 800, randomTop = 1, blocksThrees = true, width = 10, vcf = 10, defend = 6)
+            else -> Level(depth = 8, timeMs = 2000, randomTop = 1, blocksThrees = true, width = 12, vcf = 14, defend = 12)
         }
     }
 
@@ -83,10 +86,22 @@ class Engine(
             }
         }
         lastNodes = nodes
+        if (lv.defend > 0 && ranked.first().second < WIN / 2) {
+            // Defence: skip a move after which the opponent has a winning chain of fours (VCF).
+            val opp = Board.other(color)
+            deadline = now() + lv.timeMs
+            try {
+                for ((p, _) in ranked.take(6)) {
+                    place(p, color)
+                    val threat = try { vcf(opp, lv.defend) } finally { unplace(p) }
+                    if (threat == null) { best = p; break }
+                }
+            } catch (_: Stop) { }
+        }
         if (lv.randomTop > 1) {
             val top = ranked.first().second
             if (top < WIN / 2 && top > -WIN / 2) {
-                val pool = ranked.take(lv.randomTop).filter { it.second >= top - 1500 }
+                val pool = ranked.take(lv.randomTop).filter { it.second >= top - lv.margin }
                 if (pool.size > 1) return pool[random.nextInt(pool.size)].first
             }
         }
