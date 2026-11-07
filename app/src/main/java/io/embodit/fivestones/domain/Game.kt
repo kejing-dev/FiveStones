@@ -43,7 +43,8 @@ data class Settings(
     fun shapesFor(level: Int, mode: Mode): Boolean = shapesOverride ?: (mode == Mode.TWO_PLAYER || level <= 3)
 
     companion object {
-        val TILTS = listOf(0, 20, 28)
+        /** User 2026-11-06 (headset): 0 / 30 / 45 / 60 / 90 — plus the design default 20 kept as the default. */
+        val TILTS = listOf(0, 20, 30, 45, 60, 90)
         val SIZES = listOf(100, 110)
     }
 }

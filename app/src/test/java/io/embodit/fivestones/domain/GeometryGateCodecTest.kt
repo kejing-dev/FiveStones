@@ -17,7 +17,7 @@ import kotlin.math.sin
  *  3. every flight (bowl -> any point, arc 8 cm) stays inside the 0.84 x 0.54 x 0.96 m volume.
  */
 class GeometryGateCodecTest {
-    private val tilts = listOf(0, 20, 28)
+    private val tilts = Settings.TILTS
     private val sizes = listOf(100, 110)
     private val yaws = listOf(-30f, 0f, 30f, 45f)
     /** (height above the volume floor, distance behind the board's near edge). */
@@ -65,7 +65,7 @@ class GeometryGateCodecTest {
                 checked++
             }
         }
-        assertEquals(3 * 2 * 4 * 3 * 225, checked)
+        assertEquals(tilts.size * 2 * 4 * 3 * 225, checked)
     }
 
     /**
@@ -86,6 +86,22 @@ class GeometryGateCodecTest {
                     assertTrue("tilt=$t size=$s elev=$elev dist=$dist yaw=$yaw ${Board.name(p)} hidden by a bowl", !insideBowl(g, v))
                 }
             }
+        }
+    }
+
+    /** 90° (board standing up): every stone sits on the face (board-local y = half its thickness, scene z just in front of the
+     *  face), i.e. it is carried by the board root and cannot fall or float; the face normal points at the player. */
+    @Test fun ninetyDegreesStonesStayOnTheFace() {
+        for (s in sizes) {
+            val g = BoardGeometry(90, s)
+            val faceZ = g.toScene(V3(0f, 0f, 0f)).z
+            for (p in 0 until Board.SIZE) {
+                val c = g.pointScene(p, 0.0045f)
+                assertEquals("stone ${Board.name(p)} sits 4.5 mm (x scale) in front of the face", faceZ + 0.0045f * g.scale, c.z, 1e-4f)
+                assertTrue(c.y > 0f && c.y < BoardGeometry.VOLUME.y)
+            }
+            val n = g.toScene(V3(0f, 1f, 0f)) - g.toScene(V3(0f, 0f, 0f))
+            assertTrue("face normal toward the player at 90°", n.z > 0.99f * g.scale)
         }
     }
 
@@ -125,7 +141,7 @@ class GeometryGateCodecTest {
             assertTrue(abs(back.x - l.x) < 1e-5f && abs(back.y - l.y) < 1e-5f && abs(back.z - l.z) < 1e-5f)
         }
         // Near-bottom edge rests on the floor for every tilt.
-        for (t in tilts) assertEquals(0f, BoardGeometry(t, 100).toScene(V3(0f, -0.03f, 0.35f)).y, 1e-4f)
+        for (t in tilts) assertEquals(if (t >= 45) BoardGeometry.EASEL_LIFT * kotlin.math.sin(Math.toRadians(t.toDouble())).toFloat() else 0f, BoardGeometry(t, 100).toScene(V3(0f, -0.03f, 0.35f)).y, 1e-4f)
     }
 
     @Test fun levelGateWaitsForALevelHeadAndFallsBack() {

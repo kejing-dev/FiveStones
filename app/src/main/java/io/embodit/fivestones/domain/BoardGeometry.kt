@@ -41,7 +41,11 @@ class BoardGeometry(val tiltDeg: Int = 20, val sizePct: Int = 100) {
         const val PLATE_W = 280 * PLATE_DP_M
         const val PLATE_H = 72 * PLATE_DP_M
         const val PLATE_GAP = 0.02f
-        val VOLUME = V3(0.84f, 0.54f, 0.96f)
+        /** At steep tilts the plate steps back behind the board plane (6 cm at 90°) so sight lines to the top rows never cross it. */
+        const val PLATE_BACK = 0.06f
+        const val EASEL_LIFT = 0.045f
+        /** v0.1.5: 0.54 -> 0.92 m tall so the board can stand up to 90° at 110 % (lifted, see EASEL_LIFT) with the plate above it. */
+        val VOLUME = V3(0.84f, 0.92f, 0.96f)
     }
 
     val scale: Float = sizePct / 100f
@@ -49,8 +53,9 @@ class BoardGeometry(val tiltDeg: Int = 20, val sizePct: Int = 100) {
     val thick: Float = THICK * scale
     val theta: Float = Math.toRadians(tiltDeg.toDouble()).toFloat()
 
-    /** tiltRoot position in scene space: the near-bottom edge of the board. */
-    val tiltOrigin: V3 = V3(0f, 0f, CONTENT_Z + side / 2)
+    /** tiltRoot position in scene space: the near-bottom edge of the board. At steep tilts the board stands on an easel
+     *  lift (up to 4.5 cm at 90°) so its near edge and the A / O coordinates clear the bowls in front of it. */
+    val tiltOrigin: V3 = V3(0f, if (tiltDeg >= 45) EASEL_LIFT * sin(Math.toRadians(tiltDeg.toDouble()).toFloat()) else 0f, CONTENT_Z + side / 2)
     /** boardRoot relative to tiltRoot (before rotation): up by the thickness, back by half the board. */
     val boardOffset: V3 = V3(0f, thick, -side / 2)
 
@@ -85,7 +90,7 @@ class BoardGeometry(val tiltDeg: Int = 20, val sizePct: Int = 100) {
     }
 
     /** Centre of the move plate: upright, above the far edge, never over a point. */
-    fun plateCentre(): V3 = toScene(V3(0f, 0f, -BOARD / 2)) + V3(0f, PLATE_GAP + PLATE_H / 2, 0f)
+    fun plateCentre(): V3 = toScene(V3(0f, 0f, -BOARD / 2)) + V3(0f, PLATE_GAP + PLATE_H / 2, -PLATE_BACK * sin(theta))
 
     /** The far-edge top line in scene space (y of the board's highest edge). */
     fun farTop(): V3 = toScene(V3(0f, 0f, -BOARD / 2))

@@ -95,7 +95,7 @@ class DebugCommandReceiver : BroadcastReceiver() {
             "exitask" -> { Ui.page = Page.SETTINGS; Ui.exitConfirm = true }
             "level" -> a.toIntOrNull()?.let { l -> flow.state.value.config?.let { flow.load(flow.state.value.moves, it.copy(level = l)) } }
             "lang" -> settings { it.copy(language = when (a) { "zh" -> Language.ZH; "en" -> Language.EN; else -> Language.SYSTEM }) }
-            "tilt" -> a.toIntOrNull()?.takeIf { it in listOf(0, 20, 28) }?.let { t -> settings { it.copy(tilt = t) } }
+            "tilt" -> a.toIntOrNull()?.takeIf { it in io.embodit.fivestones.domain.Settings.TILTS }?.let { t -> settings { it.copy(tilt = t) } }
             "size" -> a.toIntOrNull()?.takeIf { it in listOf(100, 110) }?.let { s -> settings { it.copy(size = s) } }
             "sound" -> settings { it.copy(sound = on) }
             "volume" -> a.toIntOrNull()?.let { v -> settings { it.copy(volume = v.coerceIn(0, 2)) } }

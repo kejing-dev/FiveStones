@@ -198,7 +198,7 @@ internal class BoardScene {
         for (i in padsBuilt until end) {
             // D50 (v0.1.4, headset: "眼手没有眼睛落点"): the system only highlights the visible, opaque mesh it hits, and the
             // app never sees the gaze. So every point is a collider holder (0.89 pitch, Interactable + HoverEffect) with a
-            // visible 9 mm marker dot 2 mm proud of the face (darker kaya; ink on the 5 star points) that the system lights.
+            // visible 5 mm marker dot 1.5 mm proud of the face (half a shade darker than kaya; star points a shade more) that the system lights.
             val l = geo.local(i, 0.0015f)
             val pad = Entity().apply {
                 setName("pad:$i")
