@@ -85,9 +85,9 @@ internal class SceneResources private constructor() {
     companion object {
         const val STONE_R = 0.017f
         const val STONE_H = 0.009f
-        /** Point marker: Ø 9 mm, 2 mm proud of the board face (D50 hover carrier). */
-        const val MARKER_R = 0.0045f
-        const val MARKER_H = 0.002f
+        /** Point marker (v0.1.5, user: "不用显示那么多大的交叉点"): Ø 5 mm, 1.5 mm proud, half a shade darker than kaya. */
+        const val MARKER_R = 0.0025f
+        const val MARKER_H = 0.0015f
 
         private fun pbr(color: Color, roughness: Float, metallic: Float = 0f, glow: Float = 0f, blend: BlendingMode = BlendingMode.OPAQUE): PhysicallyBasedMaterial =
             PhysicallyBasedMaterial.create(blend).apply {
@@ -134,8 +134,8 @@ internal class SceneResources private constructor() {
                 async(io) { r.stoneShape = ShapeResource.createBox(Vector3(2 * STONE_R, 2 * STONE_R, 2 * STONE_R)).keep() },
                 // gate:allow geometry point marker: the small visible dot on every intersection that carries the system hover highlight (D50, go-nine v0.1.8)
                 async(io) { r.marker = MeshResource.createCylinder(radius = MARKER_R, height = MARKER_H).keep() },
-                async(io) { r.markerMat = pbr(Color(0xFF9A6A30), roughness = 0.5f).keep() },
-                async(io) { r.markerStar = pbr(FiveColors.BoardInk, roughness = 0.5f).keep() },
+                async(io) { r.markerMat = pbr(Color(0xFFD3A651), roughness = 0.55f).keep() },
+                async(io) { r.markerStar = pbr(Color(0xFF8C6230), roughness = 0.5f).keep() },
                 async(io) { r.physics = PhysicsMaterialResource().keep() },
                 async(io) { r.wood = pbr(FiveColors.Kaya, roughness = 0.55f).keep() },
                 async(io) { r.woodEdge = pbr(FiveColors.KayaEdge, roughness = 0.6f).keep() },

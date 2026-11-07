@@ -72,7 +72,8 @@ class Graph(context: Context) {
 
 /**
  * Effects from assets/sounds (profile D51). Stone sounds are real CC0 recordings of a Go stone on a wooden board
- * (build/sound-sources.md): place / place_2 / place_3 rotate with a random ±5 % pitch; retract = stone into the bowl.
+ * (build/sound-sources.md), cleaned by tools/import_stones.py (spectral subtraction, 120 Hz-6 kHz, no thickening): place /
+ * place_2 / place_3 rotate with a random ±5 % pitch; retract = a softer stone click.
  * Short UI cues (illegal, win, lose) are CC0 interface recordings, played quieter than the stones. Hover / pre-selection
  * / hint are silent. One sound of a kind at a time: a new one stops the previous one of the same kind (no stacking).
  */
@@ -98,7 +99,7 @@ class SoundPlayer(context: Context) {
         Sound.HINT -> null
     }
 
-    private fun gainOf(base: String): Float = when (base) { "place", "retract" -> 1f; else -> 0.55f }
+    private fun gainOf(base: String): Float = when (base) { "place" -> 1f; "retract" -> 0.6f; else -> 0.55f }
 
     init {
         pool.setOnLoadCompleteListener { _, id, status -> if (status == 0) synchronized(loaded) { loaded += id } }
