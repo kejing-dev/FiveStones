@@ -22,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -44,8 +43,11 @@ import com.pico.spatial.ui.design.Text
 import com.pico.spatial.ui.foundation.content.SpatialView
 import com.pico.spatial.ui.foundation.dsl.registerSystem
 import com.pico.spatial.ui.foundation.dsl.unregisterSystem
-import com.pico.spatial.ui.foundation.gesture.detectSpatialPointerEvent
-import com.pico.spatial.ui.foundation.gesture.detectSpatialTapGesture
+import com.pico.spatial.ui.geometry.Offset3D
+import io.embodit.fivestones.ui.board.input.BoardInputListener
+import io.embodit.fivestones.ui.board.input.FiveTargets
+import io.embodit.fivestones.ui.board.input.InputSource
+import io.embodit.fivestones.ui.board.input.boardInput
 import com.pico.spatial.ui.platform.containers.LocalSpatialNavigator
 import io.embodit.fivestones.R
 import io.embodit.fivestones.domain.AlertKind
@@ -136,24 +138,18 @@ fun BoardScreen() {
         modifier = Modifier
             .fillMaxSize()
             .onSizeChanged { viewSize = it }
-            .pointerInput(Unit) {
-                detectSpatialTapGesture(context = context) { tap ->
-                    val name = tap.targetEntity?.getName()
-                    val p = scene.pointOf(name)
-                    Log.i(TAG, "PINCH target=$name kind=${tap.interactionKind}")
-                    if (p != null) graph.flow.tap(p)
+            // Factory template board-input (D50): system taps, short drags turned back into taps, hover, all three
+            // inputs (controller ray, hand ray, eye-hand). Targets resolve up the parent chain to pad / marker / stone.
+            .boardInput(FiveTargets, object : BoardInputListener<Int> {
+                override fun onTap(target: Int?, source: InputSource, position: Offset3D?) {
+                    Log.i(TAG, "PINCH src=${source.label} point=${target?.let(Board::name) ?: "-"}")
+                    if (target != null) graph.flow.tap(target)
                 }
-            }
-            .pointerInput(Unit) {
-                detectSpatialPointerEvent(context = context) { infos ->
-                    val info = infos.firstOrNull()
-                    if (info != null && !info.pressed) {
-                        val p = scene.pointOf(info.targetedEntity?.getName())
-                        graph.flow.hover(p)
-                    }
-                    false
+
+                override fun onHover(target: Int?, source: InputSource) {
+                    graph.flow.hover(target)
                 }
-            },
+            }),
         attachments = {
             // The attachment is its own composition: hand it the localised context explicitly.
             AttachmentPanel(PLATE) { PlateRoot(graph) }

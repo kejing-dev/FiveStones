@@ -396,7 +396,7 @@ class GameFlow(
             }
             if (s.moves != moves || !s.hintOn || p < 0) return@launch
             set(s.copy(hint = p, hintCount = s.hintCount + 1))
-            onSound(Sound.HINT)
+            // hint is silent (D51: selection / pre-selection / hover / hints make no sound)
             log("HINT ${Board.name(p)}")
             persist()
         }

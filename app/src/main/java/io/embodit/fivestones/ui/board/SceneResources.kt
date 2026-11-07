@@ -47,6 +47,7 @@ internal class SceneResources private constructor() {
     lateinit var bowl: MeshResource; private set
     lateinit var bowlMouth: MeshResource; private set
     lateinit var bowlRim: MeshResource; private set
+    lateinit var marker: MeshResource; private set
 
     lateinit var wood: Material; private set
     lateinit var woodEdge: Material; private set
@@ -72,6 +73,9 @@ internal class SceneResources private constructor() {
     lateinit var bowlGlow: Material; private set
 
     lateinit var padShape: ShapeResource; private set
+    lateinit var stoneShape: ShapeResource; private set
+    lateinit var markerMat: Material; private set
+    lateinit var markerStar: Material; private set
     lateinit var physics: PhysicsMaterialResource; private set
 
     fun close() {
@@ -81,6 +85,9 @@ internal class SceneResources private constructor() {
     companion object {
         const val STONE_R = 0.017f
         const val STONE_H = 0.009f
+        /** Point marker: Ø 9 mm, 2 mm proud of the board face (D50 hover carrier). */
+        const val MARKER_R = 0.0045f
+        const val MARKER_H = 0.002f
 
         private fun pbr(color: Color, roughness: Float, metallic: Float = 0f, glow: Float = 0f, blend: BlendingMode = BlendingMode.OPAQUE): PhysicallyBasedMaterial =
             PhysicallyBasedMaterial.create(blend).apply {
@@ -123,6 +130,12 @@ internal class SceneResources private constructor() {
                 async(io) { r.bowlMouth = MeshResource.createPlane(BoardGeometry.BOWL_R * 1.72f, BoardGeometry.BOWL_R * 1.72f, BoardGeometry.BOWL_R * 0.86f).keep() },
                 async(io) { r.bowlRim = MeshResource.createTorus(outerRingRadius = BoardGeometry.BOWL_R * 1.02f, innerRingRadius = BoardGeometry.BOWL_R * 0.9f).keep() },
                 async(io) { r.padShape = ShapeResource.createBox(Vector3(0.040f, 0.003f, 0.040f)).keep() },
+                // Collider on the stone mesh: the lens is a sphere scaled flat, so a sphere-sized cube scales to the lens.
+                async(io) { r.stoneShape = ShapeResource.createBox(Vector3(2 * STONE_R, 2 * STONE_R, 2 * STONE_R)).keep() },
+                // gate:allow geometry point marker: the small visible dot on every intersection that carries the system hover highlight (D50, go-nine v0.1.8)
+                async(io) { r.marker = MeshResource.createCylinder(radius = MARKER_R, height = MARKER_H).keep() },
+                async(io) { r.markerMat = pbr(Color(0xFF9A6A30), roughness = 0.5f).keep() },
+                async(io) { r.markerStar = pbr(FiveColors.BoardInk, roughness = 0.5f).keep() },
                 async(io) { r.physics = PhysicsMaterialResource().keep() },
                 async(io) { r.wood = pbr(FiveColors.Kaya, roughness = 0.55f).keep() },
                 async(io) { r.woodEdge = pbr(FiveColors.KayaEdge, roughness = 0.6f).keep() },
