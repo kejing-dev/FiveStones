@@ -121,18 +121,7 @@ fun ControlWindow() {
         Triple(Page.RULES, R.drawable.ic_tab_rules, stringResource(R.string.tab_rules)),
         Triple(Page.SETTINGS, R.drawable.ic_tab_settings, stringResource(R.string.tab_settings)),
     )
-    androidx.compose.runtime.key(settings.language) {
-        TabBar(followViewpoints = setOf(ViewPoint.Front, ViewPoint.Left)) {
-            tabs.forEach { (page, icon, label) ->
-                item(
-                    selected = Ui.page == page,
-                    onClick = { Ui.page = page },
-                    mainContent = { Icon(painter = painterResource(icon), contentDescription = label) },
-                    supportContent = { Txt(label, "tabbar/${page.name}", style = PicoTheme.typography.labelMedium) },
-                )
-            }
-        }
-    }
+    androidx.compose.runtime.key(settings.language) { ControlTabBar(tabs) }
 }
 
 @Composable
@@ -173,16 +162,19 @@ private fun whoName(state: PlayState, color: Int): String {
 private fun PlayPage(state: PlayState, settings: Settings, graph: Graph) {
     val flow = graph.flow
     if (state.config == null || state.phase in setOf(Phase.SETUP, Phase.WELCOME, Phase.LOADING)) {
-        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)) {
+        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
             PageTitle(stringResource(R.string.tab_play), "play")
             Txt(stringResource(R.string.coach_1), "play/empty", style = PicoTheme.typography.titleMedium, maxLines = 3)
+            RulesDiagram()
+            Txt(stringResource(R.string.coach_2), "play/empty2", style = PicoTheme.typography.bodyLarge, maxLines = 3)
+            Txt(stringResource(R.string.coach_3), "play/empty3", style = PicoTheme.typography.bodyLarge, maxLines = 3)
             PrimaryButton(stringResource(R.string.btn_new_game), "play/new", onClick = { Ui.page = Page.NEW }, modifier = Modifier.fillMaxWidth())
         }
         return
     }
     // Short page in a 640 dp window: content is centred vertically and the main actions are larger, so no big
     // empty band is left (profile D44: blank <= 25 % of the window height).
-    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)) {
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
         // Turn chip + move number (same source as the plate on the board, D38)
         Row(Modifier.fillMaxWidth().height(56.dp), verticalAlignment = Alignment.CenterVertically) {
             if (state.result == null) {
@@ -361,7 +353,7 @@ private fun NewPage(state: PlayState, settings: Settings, graph: Graph) {
     val setup = settings.lastSetup
     fun set(change: (GameSetup) -> GameSetup) = graph.settings.update { it.copy(lastSetup = change(it.lastSetup)) }
     // Centred, taller rows and a large Start, so the page has no big empty band (D44).
-    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)) {
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
         PageTitle(stringResource(R.string.new_title), "new")
         if (state.savedAvailable && state.phase == Phase.SETUP) {
             SecondaryButton(stringResource(R.string.btn_continue), "new/continue", onClick = { graph.flow.continueSaved() }, modifier = Modifier.fillMaxWidth())
@@ -407,28 +399,28 @@ private fun NewPage(state: PlayState, settings: Settings, graph: Graph) {
 @Composable
 private fun RulesPage(state: PlayState, graph: Graph) {
     // Three views switched inside the page (same-page option, not page navigation), each fits without scrolling (D44).
-    // Centred as a whole (segment + content + Start), so no large empty band is left (D44 blank <= 25 %).
-    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterVertically)) {
+    // Every line is its own child of a SpaceBetween column, so the content reaches from top to bottom and the gaps are
+    // shared out evenly (blank above + below the content block <= 25 %, no inner band > 20 %; build.md D44 measure).
+    Column(Modifier.fillMaxSize().padding(vertical = 4.dp), verticalArrangement = Arrangement.SpaceBetween) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Segments(
                 listOf(0 to stringResource(R.string.rules_seg_how), 1 to stringResource(R.string.rules_mistakes), 2 to stringResource(R.string.rules_seg_renju)),
                 Ui.rulesView, "rules/view", { Ui.rulesView = it }, Modifier.weight(1f),
             )
         }
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            when (Ui.rulesView) {
-                0 -> {
-                    if (state.phase == Phase.WELCOME) Txt(stringResource(R.string.welcome_title), "rules/welcome", style = PicoTheme.typography.titleMedium)
-                    RulesDiagram()
-                    listOf(R.string.rules_1, R.string.rules_2, R.string.rules_3, R.string.rules_4).forEach { Txt(stringResource(it), "rules/line", style = PicoTheme.typography.bodyMedium, maxLines = 4) }
-                }
-                1 -> { RulesDiagram() }
-                else -> { ForbiddenDiagram() }
+        when (Ui.rulesView) {
+            0 -> {
+                if (state.phase == Phase.WELCOME) Txt(stringResource(R.string.welcome_title), "rules/welcome", style = PicoTheme.typography.titleMedium)
+                RulesDiagram()
+                listOf(R.string.rules_1, R.string.rules_2, R.string.rules_3, R.string.rules_4).forEach { Txt(stringResource(it), "rules/line", style = PicoTheme.typography.bodyMedium, maxLines = 4) }
             }
-            when (Ui.rulesView) {
-                0 -> Unit
-                1 -> listOf(R.string.mistake_1, R.string.mistake_2, R.string.mistake_3, R.string.mistake_4).forEach { Txt("· " + stringResource(it), "rules/mistake", style = PicoTheme.typography.bodyLarge, maxLines = 4, modifier = Modifier.padding(vertical = 3.dp)) }
-                else -> listOf(R.string.renju_1, R.string.renju_2, R.string.renju_3).forEach { Txt(stringResource(it), "rules/renju-line", style = PicoTheme.typography.titleMedium, maxLines = 4, modifier = Modifier.padding(vertical = 10.dp)) }
+            1 -> {
+                RulesDiagram()
+                listOf(R.string.mistake_1, R.string.mistake_2, R.string.mistake_3, R.string.mistake_4).forEach { Txt("· " + stringResource(it), "rules/mistake", style = PicoTheme.typography.bodyLarge, maxLines = 4) }
+            }
+            else -> {
+                ForbiddenDiagram()
+                listOf(R.string.renju_1, R.string.renju_2, R.string.renju_3).forEach { Txt(stringResource(it), "rules/renju-line", style = PicoTheme.typography.titleMedium, maxLines = 4) }
             }
         }
         if (state.phase == Phase.WELCOME) {
@@ -570,4 +562,19 @@ internal fun exitApp(context: Context, navigator: SpatialNavigator, graph: Graph
         Log.i(TAG, "EXIT finishAndRemoveTask")
         main.postDelayed({ exitProcess(0) }, 300)
     }, 400)
+}
+
+/** The native TabBar with labels already resolved in the app language (kept last in the file: no string lookups below). */
+@Composable
+private fun ControlTabBar(tabs: List<Triple<Page, Int, String>>) {
+    TabBar(followViewpoints = setOf(ViewPoint.Front, ViewPoint.Left)) {
+        tabs.forEach { (page, icon, label) ->
+            item(
+                selected = Ui.page == page,
+                onClick = { Ui.page = page },
+                mainContent = { Icon(painter = painterResource(icon), contentDescription = label) },
+                supportContent = { Txt(label, "tabbar/${page.name}", style = PicoTheme.typography.labelMedium) },
+            )
+        }
+    }
 }

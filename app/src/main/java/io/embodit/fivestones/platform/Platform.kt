@@ -18,7 +18,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlin.math.abs
 import kotlin.random.Random
 
 const val TAG = "FiveStones"
@@ -31,6 +30,7 @@ class SpatialApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        io.embodit.fivestones.ui.board.input.BoardInputLog.attach(this)
         graph = Graph(this)
         launch(::mainApp)
     }
@@ -71,51 +71,59 @@ class Graph(context: Context) {
 }
 
 /**
- * Short effects from assets/sounds/<name>.wav (+ _2 / _3 variants) through a SoundPool. The stone sound rotates
- * its three variants with a random rate of 0.93-1.07 that never repeats back to back (design sound.variation).
+ * Effects from assets/sounds (profile D51). Stone sounds are real CC0 recordings of a Go stone on a wooden board
+ * (build/sound-sources.md): place / place_2 / place_3 rotate with a random ±5 % pitch; retract = stone into the bowl.
+ * Short UI cues (illegal, win, lose) are CC0 interface recordings, played quieter than the stones. Hover / pre-selection
+ * / hint are silent. One sound of a kind at a time: a new one stops the previous one of the same kind (no stacking).
  */
 class SoundPlayer(context: Context) {
     @Volatile var enabled = true
     @Volatile var volumeLevel = 2
 
-    private val pool = SoundPool.Builder().setMaxStreams(6)
+    private val pool = SoundPool.Builder().setMaxStreams(4)
         .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build())
         .build()
-    private val ids = HashMap<Sound, List<Int>>()
+    private val ids = HashMap<String, List<Int>>()
     private val loaded = HashSet<Int>()
     private val random = Random(11)
-    private var lastRate = 1f
-    private var lastVariant = -1
+    private val lastVariant = HashMap<String, Int>()
+    private val lastStream = HashMap<String, Int>()
+
+    private fun fileOf(s: Sound): String? = when (s) {
+        Sound.PLACE -> "place"
+        Sound.RETRACT -> "retract"
+        Sound.ILLEGAL, Sound.FORBIDDEN -> "illegal"
+        Sound.WIN -> "win"
+        Sound.LOSE, Sound.DRAW -> "lose"
+        Sound.HINT -> null
+    }
+
+    private fun gainOf(base: String): Float = when (base) { "place", "retract" -> 1f; else -> 0.55f }
 
     init {
         pool.setOnLoadCompleteListener { _, id, status -> if (status == 0) synchronized(loaded) { loaded += id } }
-        for (s in Sound.entries) {
-            val base = s.name.lowercase()
+        for (base in Sound.entries.mapNotNull { fileOf(it) }.toSet()) {
             val found = ArrayList<Int>()
             for (name in listOf("$base.wav", "${base}_2.wav", "${base}_3.wav")) {
                 runCatching { context.assets.openFd("sounds/$name").use { fd -> found += pool.load(fd, 1) } }
             }
-            if (found.isNotEmpty()) ids[s] = found else Log.w(TAG, "no sound for $s")
+            if (found.isNotEmpty()) ids[base] = found else Log.w(TAG, "no sound for $base")
         }
     }
 
     fun play(s: Sound) {
         if (!enabled) return
-        val variants = ids[s] ?: return
-        val vol = io.embodit.fivestones.ui.control.VOLUME_PERCENT[volumeLevel.coerceIn(0, 2)] / 100f
-        var rate = 1f
-        var v = 0
-        if (s == Sound.PLACE) {
-            rate = 0.93f + random.nextFloat() * 0.14f
-            if (abs(rate - lastRate) < 0.015f) rate = if (rate < 1f) rate + 0.03f else rate - 0.03f
-            lastRate = rate
-            v = random.nextInt(variants.size)
-            if (v == lastVariant && variants.size > 1) v = (v + 1) % variants.size
-            lastVariant = v
-        }
+        val base = fileOf(s) ?: return
+        val variants = ids[base] ?: return
+        val vol = io.embodit.fivestones.ui.control.VOLUME_PERCENT[volumeLevel.coerceIn(0, 2)] / 100f * gainOf(base)
+        var v = if (variants.size > 1) random.nextInt(variants.size) else 0
+        if (variants.size > 1 && v == lastVariant[base]) v = (v + 1) % variants.size
+        lastVariant[base] = v
+        val rate = if (base == "place" || base == "retract") 0.95f + random.nextFloat() * 0.10f else 1f
         val id = variants[v]
         if (synchronized(loaded) { id !in loaded }) return
-        pool.play(id, vol, vol, 1, 0, rate)
+        lastStream[base]?.let { pool.stop(it) }
+        lastStream[base] = pool.play(id, vol, vol, 1, 0, rate)
     }
 
     fun release() = pool.release()

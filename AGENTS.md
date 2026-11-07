@@ -31,8 +31,11 @@ Started from kejing-dev/CloudAir v1.0.2 (two containers, theme, sound pool); the
 | `ui/control/*` | the control window pages |
 | `platform/*` | Application / graph, SoundPlayer, WindowCtl; debug builds add `DebugCommandReceiver` |
 
-Rules - state - render: the scene only renders `PlayState`; every input (pinch on a pad, debug broadcast) goes
-through `GameFlow.hover/tap`. The ghost stone's point is what a pinch places (80 ms dwell, 60 ms easing).
+Rules - state - render: the scene only renders `PlayState`; every input goes through `GameFlow.hover/tap`.
+3D input = factory template `ui/board/input/BoardInput.kt` (D50: controller ray, hand ray, eye-hand; short drags count as
+taps; log mirrored to files/input-log.txt) + `FiveTargets` (marker / pad / stone -> point, replay-tested in HitReplayTest).
+Every point has a visible 9 mm marker under a Collision + Interactable + HoverEffect pad, so the system hover highlight
+shows where a pinch will land; placed stones carry HoverEffect themselves. Sounds: CC0 Go-stone recordings, hover silent. The ghost stone's point is what a pinch places (80 ms dwell, 60 ms easing).
 
 ## Build / test (macOS)
 ```bash
@@ -69,4 +72,4 @@ Modifiers: `lang zh|en|system`, `reduced on|off`, `sound on|off`, `volume 0-2`, 
 - Control window can open partly outside the emulator view (system `Placement.right`, Cloud Air D6).
 - Not verified on a headset: controller ray / gaze hover density at 4.5 cm, system pointer visibility (D41),
   window handle drag, start placement.
-- Sounds are SoundPool (not spatial).
+- Sounds are SoundPool (not spatial). Sources: factory apps/five-stones/build/sound-sources.md.

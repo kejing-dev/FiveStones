@@ -5,6 +5,7 @@ import android.util.Log
 import com.pico.spatial.core.ecs.CollisionComponent
 import com.pico.spatial.core.ecs.Entity
 import com.pico.spatial.core.ecs.InteractableComponent
+import com.pico.spatial.core.ecs.HoverEffectComponent
 import com.pico.spatial.core.ecs.ModelComponent
 import com.pico.spatial.core.ecs.ModelEntity
 import com.pico.spatial.core.ecs.resource.Material
@@ -195,13 +196,21 @@ internal class BoardScene {
         val r = res ?: return
         val end = min(Board.SIZE, padsBuilt + count)
         for (i in padsBuilt until end) {
+            // D50 (v0.1.4, headset: "眼手没有眼睛落点"): the system only highlights the visible, opaque mesh it hits, and the
+            // app never sees the gaze. So every point is a collider holder (0.89 pitch, Interactable + HoverEffect) with a
+            // visible 9 mm marker dot 2 mm proud of the face (darker kaya; ink on the 5 star points) that the system lights.
             val l = geo.local(i, 0.0015f)
             val pad = Entity().apply {
                 setName("pad:$i")
                 transform().setPosition(Vector3(l.x, l.y, l.z))
                 components.set(CollisionComponent(collisionShape = listOf(r.padShape), physicsMaterial = r.physics))
                 components.set(InteractableComponent())
+                components.set(HoverEffectComponent())
             }
+            pad.addChild(ModelEntity(r.marker, if (i in Board.STARS) r.markerStar else r.markerMat).apply {
+                setName("marker:$i")
+                transform().setPosition(Vector3(0f, SceneResources.MARKER_H / 2 - 0.0015f, 0f)) // bottom on the face, top 2 mm proud
+            })
             boardRoot.addChild(pad)
             pads += pad
         }
@@ -241,7 +250,13 @@ internal class BoardScene {
         stones.keys.filter { it !in want }.forEach { p -> stones.remove(p)?.let { it.enabled = false; pool += it } }
         for ((p, color) in want) {
             val e = stones.getOrPut(p) {
-                (if (pool.isNotEmpty()) pool.removeAt(pool.lastIndex) else ModelEntity(r.stone, r.blackStone).also { boardRoot.addChild(it) }).also { flatten(it); it.enabled = true }
+                (if (pool.isNotEmpty()) pool.removeAt(pool.lastIndex) else ModelEntity(r.stone, r.blackStone).also { s ->
+                    // A placed stone carries the hover highlight itself (it covers its point's marker): D50.
+                    s.components.set(CollisionComponent(collisionShape = listOf(r.stoneShape), physicsMaterial = r.physics))
+                    s.components.set(InteractableComponent())
+                    s.components.set(HoverEffectComponent())
+                    boardRoot.addChild(s)
+                }).also { flatten(it); it.enabled = true }
             }
             e.setName("stone:$p")
             // Stones keep their own colour when they win (critic 要改 3); the glow is a teal ring under each one.

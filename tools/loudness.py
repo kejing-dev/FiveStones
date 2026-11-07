@@ -1,6 +1,6 @@
 """Offline loudness evidence (B20 / ui_gates loudness): renders 30 s of a fast game from the app's own WAVs at the
 default volume (gain 1.0), with the app's timing (stone flight 220 ms, retract window 500 ms, AI >= 400 ms) and
-the +-7 % rate variation, then prints RMS / peak.  kj-mbp-m5 has no audio loopback, so the emulator output itself
+the +-5 % rate variation, then prints RMS / peak.  kj-mbp-m5 has no audio loopback, so the emulator output itself
 cannot be recorded; record on a headset / loopback machine to cross-check.
 
   python3 tools/loudness.py OUT.wav
@@ -24,7 +24,7 @@ def rate(x, r):
 def main(out):
     rnd = random.Random(5)
     places = [load("place"), load("place_2"), load("place_3")]
-    hint, win = load("hint"), load("win")
+    win = load("win")
     buf = [0.0] * (30 * SR)
 
     def put(x, t):
@@ -36,14 +36,12 @@ def main(out):
     t = 0.3
     turn = 0
     while t < 28.0:
-        put(rate(rnd.choice(places), 0.93 + rnd.random() * 0.14), t + 0.22)       # human stone lands
-        if turn % 4 == 1:
-            put(hint, t + 0.22 + 0.5 + 0.4 + 0.22 + 0.15)                      # hint on the next turn
+        put(rate(rnd.choice(places), 0.95 + rnd.random() * 0.10), t + 0.22)       # human stone lands
         t += 0.22 + 0.5 + 0.4                                                  # window + min think
-        put(rate(rnd.choice(places), 0.93 + rnd.random() * 0.14), t + 0.22)   # AI stone lands
+        put(rate(rnd.choice(places), 0.95 + rnd.random() * 0.10), t + 0.22)   # AI stone lands
         t += 0.22 + 0.55                                                       # a quick human reply
         turn += 1
-    put(win, 28.3)
+    put([v * 0.55 for v in win], 28.3)                                     # UI cue at its playback gain
     peak = max(abs(v) for v in buf)
     if peak > 10 ** (-1 / 20):
         k = 10 ** (-1 / 20) / peak
