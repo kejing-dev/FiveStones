@@ -8,7 +8,6 @@
 | `f3376a48` | 子代理 · Spatial app factory setup | 732 |
 | `f3376a48` | 子代理 · Spatial app factory setup | 253 |
 | `f3376a48` | 子代理 · Spatial app factory setup | 266 |
-| `f3376a48` | 子代理 · Spatial app factory setup | 2255 |
 | `e1223a34` | 子代理 · btw: PICO CLI unity 要装什么版本的 | 2255 |
 | `e1223a34` | 子代理 · btw: PICO CLI unity 要装什么版本的 | 266 |
 | `e1223a34` | 子代理 · btw: PICO CLI unity 要装什么版本的 | 253 |
@@ -16,4 +15,8 @@
 | `e1223a34` | 子代理 · btw: PICO CLI unity 要装什么版本的 | 732 |
 | `e1223a34` | 子代理 · btw: PICO CLI unity 要装什么版本的 | 313 |
 | `f3376a48` | 子代理 · Spatial app factory setup | 1325 |
-| `f3376a48` | 子代理 · Spatial app factory setup | 642 |
+| `f3376a48` | 子代理 · Spatial app factory setup | 678 |
+| `f3376a48` | 子代理 · Spatial app factory setup | 2725 |
+| `f3376a48` | 子代理 · Spatial app factory setup | 677 |
+| `f3376a48` | 子代理 · Spatial app factory setup | 501 |
+| `f3376a48` | 子代理 · Spatial app factory setup | 505 |
